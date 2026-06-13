@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SignCheonha Lite</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="사인천하">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="description" content="채널 간판 시안 & 견적서 앱">
+
+<!-- Apple 아이콘 -->
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@900&family=Black+Han+Sans&family=Jua&family=Gugi&family=Sunflower:wght@700&family=Gothic+A1:wght@900&family=Nanum+Gothic:wght@800&family=Nanum+Myeongjo:wght@800&family=Do+Hyeon&family=Cute+Font&family=Gaegu:wght@700&family=Hi+Melody&family=Dongle:wght@700&family=Single+Day&family=Gamja+Flower&family=Gowun+Dodum&family=Gowun+Batang&family=Hahmlet:wght@700&family=Nanum+Pen+Script&family=Stylish&family=Yeon+Sung&family=Nanum+Brush+Script&family=Poor+Story&family=Song+Myung&family=Nanum+Gothic+Coding&family=Dokdo&family=East+Sea+Dokdo&family=Jeju+Gothic&family=Jeju+Myeongjo&family=Jeju+Hallasan&family=IBM+Plex+Sans+KR:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0d;
+  --surface: #1a1a1a;
+  --border: #2e2e2e;
+  --border2: #3a3a3a;
+  --text1: #e8e8e8;
+  --text2: #a0a0a0;
+  --text3: #606060;
+  --blue: #2878cc;
+  --blue-light: #1a2e44;
+  --blue-mid: #4a9aee;
+  --green: #1D9E75;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; color: var(--text1); }
+
+/* 레이아웃 */
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--surface); display: flex; flex-direction: column; }
+.header { padding: 14px 16px 0; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+.header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.header-title { font-size: 15px; font-weight: 700; color: var(--text1); }
+.header-step { font-size: 12px; color: var(--text3); }
+.stepbar { display: flex; gap: 4px; padding-bottom: 12px; }
+.step { flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+.step.done { background: var(--green); }
+.step.active { background: var(--blue-mid); }
+.step-label { font-size: 11px; color: var(--text2); padding: 0 0 10px; }
+
+.content { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+.footer { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 8px; z-index: 10; }
+.btn-back { width: 48px; height: 48px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: var(--text2); flex-shrink: 0; }
+.btn-next { flex: 1; height: 48px; border-radius: var(--radius-sm); background: var(--blue); color: #fff; font-size: 15px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-next:disabled { background: var(--border); color: var(--text3); }
+
+/* 스텝 패널 */
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+/* 미리보기 */
+.preview-wrap { background: #000000; padding: 30px 16px 20px; display: flex; flex-direction: column; align-items: flex-start; overflow: hidden; width: 100%; position: relative; transition: box-shadow 0.3s; }
+.sign-container {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  overflow: visible;
+}
+.ch-main {
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  z-index: 2;
+  font-weight: 900; line-height: 1; white-space: nowrap;
+  transition: color 0.3s, text-shadow 0.3s, left 0.15s;
+  font-size: clamp(34px, 13vw, 62px); letter-spacing: 2px;
+}
+.frame-bar {
+  position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+  height: 22px;
+  border: 1.5px solid #999; border-radius: 2px; background: #d0d0d0;
+  display: flex; align-items: center; justify-content: flex-start;
+  padding: 0; z-index: 1; overflow: hidden;
+  transition: background 0.3s, border-color 0.3s;
+}
+.ch-sub { font-size: 11px; font-weight: 500; white-space: nowrap; position: absolute; right: 8px; transition: right 0.15s; }
+.preview-hint { font-size: 10px; color: #666; text-align: center; margin-top: 10px; width: 100%; }
+
+/* 폼 */
+.form-body { padding: 16px; }
+.fl { font-size: 12px; color: var(--text2); margin-bottom: 6px; margin-top: 14px; font-weight: 500; }
+.fl:first-child { margin-top: 0; }
+.fl-note { font-size: 11px; color: var(--text3); font-weight: 400; margin-left: 4px; }
+.fi { width: 100%; height: 42px; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 0 12px; font-size: 15px; color: var(--text1); background: #222; outline: none; transition: border-color 0.2s; }
+.fi:focus { border-color: var(--blue-mid); background: #2a2a2a; }
+.seg { display: flex; gap: 4px; }
+.sb { flex: 1; height: 38px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 13px; color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fafafa; transition: all 0.15s; user-select: none; }
+.sb.on { background: var(--blue-light); border-color: var(--blue-mid); color: #0C447C; font-weight: 600; }
+.sr { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.sr input[type=range] { flex: 1; accent-color: var(--blue); }
+.sv { font-size: 13px; color: var(--text2); min-width: 34px; text-align: right; }
+
+/* 컬러 피커 */
+.color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; padding-bottom: 4px; }
+.color-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cp { width: 30px; height: 30px; border-radius: 7px; border: 2px solid transparent; cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+.cp:active { transform: scale(0.92); }
+.cp.sel { border-color: var(--blue-mid); box-shadow: 0 0 0 2px rgba(55,138,221,0.25); }
+.cp-name { font-size: 9px; color: var(--text3); white-space: nowrap; }
+
+/* 그리드 입력 */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.input-group { display: flex; flex-direction: column; gap: 4px; }
+.input-group label { font-size: 11px; color: var(--text3); }
+
+/* 재질 선택 */
+.material-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.mat-btn { height: 42px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 13px; color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; background: #222; transition: all 0.15s; }
+.mat-btn.on { background: var(--blue-light); border-color: var(--blue-mid); color: #0C447C; font-weight: 600; }
+
+/* 견적서 */
+.quote-card { background: #1e1e1e; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.quote-title { font-size: 13px; font-weight: 700; color: var(--text1); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.quote-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; }
+.quote-row .label { color: var(--text2); }
+.quote-row .value { color: var(--text1); font-weight: 500; }
+.quote-total { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 0; margin-top: 8px; border-top: 1px solid var(--border); font-size: 15px; font-weight: 700; }
+.quote-total .price { color: var(--blue); }
+.preview-card { background: #0d0d0d; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.preview-card-title { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 10px; }
+.sign-preview-mini { position: relative; }
+.btn-action { width: 100%; height: 44px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; }
+.btn-save { background: var(--green); color: #fff; }
+.btn-print { background: var(--surface); border: 1px solid var(--border2) !important; color: var(--text1); border: none; }
+.pos-row { display: flex; align-items: center; gap: 8px; }
+.pos-ud { display: flex; flex-direction: column; gap: 3px; }
+.pos-ud-btn { width: 30px; height: 22px; border: 1px solid var(--border2); border-radius: 5px; background: #222; font-size: 11px; color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.pos-ud-btn:active { background: var(--blue-light); }
+.pos-label { font-size: 12px; color: var(--text2); min-width: 38px; }
+.pos-btns { display: flex; align-items: center; gap: 4px; flex: 1; }
+.pos-btn { width: 34px; height: 34px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: #222; font-size: 12px; color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.pos-btn:active { background: var(--blue-light); }
+.pos-val { font-size: 12px; color: var(--text3); min-width: 28px; text-align: center; }
+.pos-reset { height: 34px; padding: 0 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: #222; font-size: 11px; color: var(--text3); cursor: pointer; white-space: nowrap; }
+.divider { height: 1px; background: var(--border); margin: 4px 0 14px; }
+.q-input { width: 130px; height: 34px; border: 1px solid var(--border2); border-radius: 6px; padding: 0 10px; font-size: 14px; font-weight: 500; color: var(--text1); background: #222; text-align: right; outline: none; }
+.q-input:focus { border-color: var(--blue-mid); }
+.font-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.font-btn { height: 44px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 13px; color: var(--text1); display: flex; align-items: center; justify-content: center; cursor: pointer; background: #222; transition: all 0.15s; overflow: hidden; }
+.font-btn.on { background: var(--blue-light); border-color: var(--blue-mid); color: #0C447C; }
+
+/* 배경 프리셋 */
+.bg-wrap { width:100%; position:relative; overflow:hidden; border-radius:6px; margin-bottom:6px; }
+.bg-scene { width:100%; aspect-ratio:16/7; position:relative; overflow:hidden; }
+.bg-building { width:100%; height:100%; position:relative; }
+.bg-preset-row { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.bg-preset-btn { flex:1; min-width:80px; height:36px; border:1.5px solid var(--border2); border-radius:6px; font-size:11px; color:var(--text2); cursor:pointer; display:flex;align-items:center;justify-content:center; background:#1a1a1a; transition:all 0.15s; }
+.bg-preset-btn.on { border-color:var(--blue-mid); background:var(--blue-light); color:#0C447C; font-weight:600; }
+
+/* 견적서 품목 추가 */
+.quote-add-row { display:flex; gap:8px; margin-top:8px; }
+.quote-add-input { flex:1; height:34px; border:1px solid var(--border2); border-radius:6px; padding:0 10px; font-size:13px; color:var(--text1); background:#222; outline:none; }
+.quote-add-input:focus { border-color:var(--blue-mid); }
+.quote-del-btn { width:30px; height:34px; border:1px solid #fca5a5; border-radius:6px; background:#fff5f5; color:#ef4444; font-size:16px; cursor:pointer; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+.btn-add-item { width:100%; height:36px; border:1px dashed var(--border2); border-radius:6px; font-size:13px; color:var(--text3); cursor:pointer; background:#1a1a1a; margin-top:6px; }
+.btn-add-item:hover { border-color:var(--blue-mid); color:var(--blue-mid); }
+
+/* PNG 저장 버튼 */
+.btn-png { background:#7C3AED; color:#fff; }
+
+/* 3단계 터치 UI */
+.size-preset-row { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:6px; }
+.size-preset-btn { height:52px; border:1.5px solid var(--border2); border-radius:var(--radius-sm); background:#222; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s; }
+.size-preset-btn.on { background:var(--blue-light); border-color:var(--blue-mid); }
+.size-preset-btn .sz-label { font-size:13px; font-weight:600; color:var(--text1); }
+.size-preset-btn.on .sz-label { color:#0C447C; }
+.size-preset-btn .sz-sub { font-size:10px; color:var(--text3); }
+.size-preset-btn.on .sz-sub { color:#378ADD; }
+.size-custom-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+.size-input-wrap { display:flex; flex-direction:column; gap:4px; }
+.size-input-wrap label { font-size:11px; color:var(--text3); }
+.mat-btn { height:52px; font-size:13px; }
+.mat-btn .mat-sub { font-size:10px; color:var(--text3); display:block; margin-top:2px; }
+.mat-btn.on .mat-sub { color:#378ADD; }
+.qty-wrap { display:flex; align-items:center; gap:0; border:1.5px solid var(--border2); border-radius:var(--radius-sm); overflow:hidden; margin-top:6px; }
+.qty-btn { width:56px; height:52px; font-size:24px; color:var(--text2); background:#222; border:none; cursor:pointer; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+.qty-btn:active { background:var(--blue-light); }
+.qty-num { flex:1; text-align:center; font-size:22px; font-weight:700; color:var(--text1); }
+.install-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+.install-btn { height:60px; border:1.5px solid var(--border2); border-radius:var(--radius-sm); background:#222; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; transition:all 0.15s; }
+.install-btn.on { background:var(--blue-light); border-color:var(--blue-mid); }
+.install-btn .inst-icon { font-size:20px; }
+.install-btn .inst-label { font-size:12px; font-weight:600; color:var(--text1); }
+.install-btn.on .inst-label { color:#0C447C; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-row">
+      <div class="header-title">SignCheonha Lite</div>
+      <div class="header-step" id="stepLabel">1/4단계</div>
+    </div>
+    <div class="stepbar" id="stepbar">
+      <div class="step active"></div>
+      <div class="step"></div>
+      <div class="step"></div>
+      <div class="step"></div>
+    </div>
+  </div>
+
+  <!-- 공통 미리보기 (모든 단계 고정) -->
+  <div class="preview-wrap" id="commonPreview" style="padding:0;position:relative;overflow:hidden">
+    <!-- 배경 건물 씬 -->
+    <div id="bgScene" style="width:100%;position:relative;overflow:hidden;min-height:160px">
+      <svg id="bgSvg" viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
+      <!-- 간판 오버레이 — 코니스 바로 아래 상단 고정 -->
+      <div style="position:absolute;left:0;right:0;top:35px;padding:0 16px;z-index:5">
+        <div class="sign-container" id="commonContainer" style="height:80px">
+          <div class="frame-bar" id="cFrame">
+            <span class="ch-sub" id="cSub">000-0000</span>
+          </div>
+          <span class="ch-main" id="cMain" style="color:#fff;text-shadow:none">형제삼겹살</span>
+        </div>
+      </div>
+    </div>
+    <!-- 배경 선택 -->
+    <div style="padding:8px 12px 10px;background:#000">
+      <div class="bg-preset-row">
+        <div class="bg-preset-btn on" onclick="setBg(this,'none')">🌑 없음</div>
+        <div class="bg-preset-btn" onclick="setBg(this,'marble')">🪨 대리석</div>
+        <div class="bg-preset-btn" onclick="setBg(this,'cement')">🧱 시멘트</div>
+        <div class="bg-preset-btn" onclick="setBg(this,'tile')">⬜ 타일</div>
+        <div class="bg-preset-btn" onclick="setBg(this,'white')">🏢 흰벽</div>
+        <div class="bg-preset-btn" onclick="setBg(this,'brick')">🧱 적벽돌</div>
+      </div>
+    </div>
+    <div class="preview-hint" id="cHint" style="background:#000;padding-bottom:8px">업체명과 부제목을 입력하세요</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== 1단계: 업체 정보 ===== -->
+    <div class="step-panel active" id="panel1">
+      <div class="form-body">
+        <div class="fl">업체명</div>
+        <input class="fi" id="bizName" value="형제삼겹살" placeholder="업체명을 입력하세요" oninput="syncPreview1()">
+        <div class="fl">부제목 <span class="fl-note">(전화번호·슬로건 등, 조명 미적용)</span></div>
+        <input class="fi" id="bizSub" value="000-0000" placeholder="예) 031-000-0000" oninput="syncPreview1()">
+        <div class="fl" style="margin-top:16px">폰트 선택</div>
+        <div class="font-grid" id="fontPicker" style="grid-template-columns:repeat(3,1fr)">
+          <div class="font-btn on" style="font-family:'Gothic A1',sans-serif" onclick="setFont(this,'Gothic A1')">고딕A1</div>
+          <div class="font-btn" style="font-family:'Black Han Sans',sans-serif" onclick="setFont(this,'Black Han Sans')">블랙한산</div>
+          <div class="font-btn" style="font-family:'Noto Sans KR',sans-serif" onclick="setFont(this,'Noto Sans KR')">노토산스</div>
+          <div class="font-btn" style="font-family:'Nanum Gothic',sans-serif" onclick="setFont(this,'Nanum Gothic')">나눔고딕</div>
+          <div class="font-btn" style="font-family:'Do Hyeon',sans-serif" onclick="setFont(this,'Do Hyeon')">도현</div>
+          <div class="font-btn" style="font-family:'Gugi',sans-serif" onclick="setFont(this,'Gugi')">구기</div>
+          <div class="font-btn" style="font-family:'Jua',sans-serif" onclick="setFont(this,'Jua')">주아</div>
+          <div class="font-btn" style="font-family:'Stylish',sans-serif" onclick="setFont(this,'Stylish')">스타일리시</div>
+          <div class="font-btn" style="font-family:'Yeon Sung',sans-serif" onclick="setFont(this,'Yeon Sung')">연성</div>
+          <div class="font-btn" style="font-family:'Nanum Myeongjo',sans-serif" onclick="setFont(this,'Nanum Myeongjo')">나눔명조</div>
+          <div class="font-btn" style="font-family:'Gowun Dodum',sans-serif" onclick="setFont(this,'Gowun Dodum')">고운돋움</div>
+          <div class="font-btn" style="font-family:'Gowun Batang',sans-serif" onclick="setFont(this,'Gowun Batang')">고운바탕</div>
+          <div class="font-btn" style="font-family:'Song Myung',sans-serif" onclick="setFont(this,'Song Myung')">송명</div>
+          <div class="font-btn" style="font-family:'Hahmlet',sans-serif" onclick="setFont(this,'Hahmlet')">함렛</div>
+          <div class="font-btn" style="font-family:'IBM Plex Sans KR',sans-serif" onclick="setFont(this,'IBM Plex Sans KR')">IBM플렉스</div>
+          <div class="font-btn" style="font-family:'Sunflower',sans-serif" onclick="setFont(this,'Sunflower')">선플라워</div>
+          <div class="font-btn" style="font-family:'Gaegu',sans-serif" onclick="setFont(this,'Gaegu')">개구</div>
+          <div class="font-btn" style="font-family:'Dongle',sans-serif" onclick="setFont(this,'Dongle')">동글</div>
+          <div class="font-btn" style="font-family:'Gamja Flower',sans-serif" onclick="setFont(this,'Gamja Flower')">감자꽃</div>
+          <div class="font-btn" style="font-family:'Poor Story',sans-serif" onclick="setFont(this,'Poor Story')">푸어스토리</div>
+          <div class="font-btn" style="font-family:'Single Day',sans-serif" onclick="setFont(this,'Single Day')">싱글데이</div>
+          <div class="font-btn" style="font-family:'Hi Melody',sans-serif" onclick="setFont(this,'Hi Melody')">하이멜로디</div>
+          <div class="font-btn" style="font-family:'Cute Font',sans-serif" onclick="setFont(this,'Cute Font')">큐트폰트</div>
+          <div class="font-btn" style="font-family:'Jeju Gothic',sans-serif" onclick="setFont(this,'Jeju Gothic')">제주고딕</div>
+          <div class="font-btn" style="font-family:'Jeju Myeongjo',sans-serif" onclick="setFont(this,'Jeju Myeongjo')">제주명조</div>
+          <div class="font-btn" style="font-family:'Jeju Hallasan',sans-serif" onclick="setFont(this,'Jeju Hallasan')">제주한라산</div>
+          <div class="font-btn" style="font-family:'Dokdo',sans-serif" onclick="setFont(this,'Dokdo')">독도</div>
+          <div class="font-btn" style="font-family:'East Sea Dokdo',sans-serif" onclick="setFont(this,'East Sea Dokdo')">동해독도</div>
+          <div class="font-btn" style="font-family:'Nanum Pen Script',sans-serif" onclick="setFont(this,'Nanum Pen Script')">나눔펜</div>
+          <div class="font-btn" style="font-family:'Nanum Brush Script',sans-serif" onclick="setFont(this,'Nanum Brush Script')">나눔브러시</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== 2단계<!-- ===== 2단계: 프레임 & 조명 ===== -->
+    <div class="step-panel" id="panel2">
+      <div class="form-body">
+        <div class="fl">조명 방식</div>
+        <div class="seg" id="lightSeg">
+          <div class="sb on" onclick="setSeg('lightSeg',this,'전광')">전광</div>
+          <div class="sb" onclick="setSeg('lightSeg',this,'후광')">후광</div>
+          <div class="sb" onclick="setSeg('lightSeg',this,'전+후광')">전+후광</div>
+        </div>
+
+        <div class="fl">조명 강도</div>
+        <div class="sr">
+          <span style="font-size:11px;color:var(--text3)">약</span>
+          <input type="range" min="20" max="100" step="1" value="75" id="intensity" oninput="renderP2()">
+          <span style="font-size:11px;color:var(--text3)">강</span>
+          <div class="sv" id="intVal">75%</div>
+        </div>
+
+        <div id="brightnessRow" style="display:none">
+          <div class="fl">문자 불투명도</div>
+          <div class="sr">
+            <span style="font-size:11px;color:var(--text3)">투명</span>
+            <input type="range" min="0" max="100" step="1" value="100" id="textBrightness" style="flex:1" oninput="onBrightness()">
+            <span style="font-size:11px;color:var(--text3)">불투명</span>
+            <div class="sv" id="brightnessVal">100%</div>
+          </div>
+        </div>
+
+        <div class="fl">글자색</div>
+        <div class="color-row" id="colorPicker">
+          <div class="color-item"><div class="cp" style="background:#111111" onclick="setTextColor(this,'#111111')"></div><span class="cp-name">검정</span></div>
+          <div class="color-item"><div class="cp sel" style="background:#ffffff;box-shadow:inset 0 0 0 1px #ccc" onclick="setTextColor(this,'#ffffff')"></div><span class="cp-name">흰색</span></div>
+          <div class="color-item"><div class="cp" style="background:#d4af37" onclick="setTextColor(this,'#d4af37')"></div><span class="cp-name">골드</span></div>
+          <div class="color-item"><div class="cp" style="background:#f97316" onclick="setTextColor(this,'#f97316')"></div><span class="cp-name">주황</span></div>
+          <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setTextColor(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
+          <div class="color-item"><div class="cp" style="background:#3b82f6" onclick="setTextColor(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
+          <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setTextColor(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
+        </div>
+
+        <div class="fl">조명색</div>
+        <div class="color-row" id="glowPicker">
+          <div class="color-item"><div class="cp sel" style="background:#fdf4c8;box-shadow:inset 0 0 0 1px #e8d870" onclick="setGlowColor(this,'#fdf4c8')"></div><span class="cp-name">전구색</span></div>
+          <div class="color-item"><div class="cp" style="background:#ffffff;box-shadow:inset 0 0 0 1px #ccc" onclick="setGlowColor(this,'#ffffff')"></div><span class="cp-name">흰색</span></div>
+          <div class="color-item"><div class="cp" style="background:#d4af37" onclick="setGlowColor(this,'#d4af37')"></div><span class="cp-name">골드</span></div>
+          <div class="color-item"><div class="cp" style="background:#f97316" onclick="setGlowColor(this,'#f97316')"></div><span class="cp-name">주황</span></div>
+          <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setGlowColor(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
+          <div class="color-item"><div class="cp" style="background:#3b82f6" onclick="setGlowColor(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
+          <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setGlowColor(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
+          <div class="color-item"><div class="cp" style="background:#e879f9" onclick="setGlowColor(this,'#e879f9')"></div><span class="cp-name">보라</span></div>
+        </div>
+
+        <div class="fl">프레임 색상</div>
+        <div class="color-row" id="framePicker">
+          <div class="color-item"><div class="cp sel" style="background:#d0d0d0;box-shadow:inset 0 0 0 1px #aaa" onclick="setFrameColor(this,'#d0d0d0','#aaa','#333')"></div><span class="cp-name">실버</span></div>
+          <div class="color-item"><div class="cp" style="background:#2a2a2a" onclick="setFrameColor(this,'#2a2a2a','#555','#ccc')"></div><span class="cp-name">블랙</span></div>
+          <div class="color-item"><div class="cp" style="background:#1e3a5f" onclick="setFrameColor(this,'#1e3a5f','#2a5f9e','#b0c8e8')"></div><span class="cp-name">네이비</span></div>
+          <div class="color-item"><div class="cp" style="background:#8B6914" onclick="setFrameColor(this,'#8B6914','#b8860b','#f0d87a')"></div><span class="cp-name">브론즈</span></div>
+          <div class="color-item"><div class="cp" style="background:#1a3320" onclick="setFrameColor(this,'#1a3320','#2d5c38','#8ecfa0')"></div><span class="cp-name">다크그린</span></div>
+        </div>
+
+        <div class="fl">위치 조절</div>
+        <div class="pos-row">
+          <span class="pos-label">업체명</span>
+          <div class="pos-btns">
+            <button class="pos-btn" onclick="moveMain(-8)">◀◀</button>
+            <button class="pos-btn" onclick="moveMain(-2)">◀</button>
+            <span class="pos-val" id="mainPosVal">0</span>
+            <button class="pos-btn" onclick="moveMain(2)">▶</button>
+            <button class="pos-btn" onclick="moveMain(8)">▶▶</button>
+          </div>
+          <div class="pos-ud">
+            <button class="pos-ud-btn" onclick="moveMainY(-3)">▲</button>
+            <button class="pos-ud-btn" onclick="moveMainY(3)">▼</button>
+          </div>
+          <button class="pos-reset" onclick="resetMain()">리셋</button>
+        </div>
+        <div class="pos-row" style="margin-top:8px">
+          <span class="pos-label">부제목</span>
+          <div class="pos-btns">
+            <button class="pos-btn" onclick="moveSub(-8)">◀◀</button>
+            <button class="pos-btn" onclick="moveSub(-2)">◀</button>
+            <span class="pos-val" id="subPosVal">0</span>
+            <button class="pos-btn" onclick="moveSub(2)">▶</button>
+            <button class="pos-btn" onclick="moveSub(8)">▶▶</button>
+          </div>
+          <div class="pos-ud">
+            <button class="pos-ud-btn" onclick="moveSubY(-3)">▲</button>
+            <button class="pos-ud-btn" onclick="moveSubY(3)">▼</button>
+          </div>
+          <button class="pos-reset" onclick="resetSub()">리셋</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 3단계: 크기 & 재질 ===== -->
+    <div class="step-panel" id="panel3">
+      <div class="form-body">
+
+        <!-- 크기 프리셋 -->
+        <div class="fl">간판 크기</div>
+        <div class="size-preset-row" id="sizePresets">
+          <div class="size-preset-btn on" onclick="setSizePreset(this,2000,300,80)">
+            <span class="sz-label">소형</span>
+            <span class="sz-sub">2000×300mm</span>
+          </div>
+          <div class="size-preset-btn" onclick="setSizePreset(this,3000,400,100)">
+            <span class="sz-label">중형</span>
+            <span class="sz-sub">3000×400mm</span>
+          </div>
+          <div class="size-preset-btn" onclick="setSizePreset(this,4000,500,120)">
+            <span class="sz-label">대형</span>
+            <span class="sz-sub">4000×500mm</span>
+          </div>
+        </div>
+        <!-- 직접 입력 -->
+        <div class="size-custom-row" style="margin-top:10px">
+          <div class="size-input-wrap">
+            <label>가로 (mm)</label>
+            <input class="fi" id="sizeW" type="number" value="2000" placeholder="2000" oninput="clearSizePreset()">
+          </div>
+          <div class="size-input-wrap">
+            <label>세로/채널높이 (mm)</label>
+            <input class="fi" id="sizeH" type="number" value="300" placeholder="300" oninput="clearSizePreset()">
+          </div>
+        </div>
+        <div class="size-input-wrap" style="margin-top:8px">
+          <label>프레임 세로 (mm)</label>
+          <input class="fi" id="frameH" type="number" value="80" placeholder="80" oninput="clearSizePreset()">
+        </div>
+
+        <!-- 채널 재질 -->
+        <div class="fl" style="margin-top:18px">채널 재질</div>
+        <div class="material-grid" id="materialSeg">
+          <div class="mat-btn on" onclick="setMaterial(this,'아크릴 채널')">
+            아크릴 채널<span class="mat-sub">일반형 · 저렴</span>
+          </div>
+          <div class="mat-btn" onclick="setMaterial(this,'알루미늄 채널')">
+            알루미늄 채널<span class="mat-sub">내구성 · 보통</span>
+          </div>
+          <div class="mat-btn" onclick="setMaterial(this,'스테인리스')">
+            스테인리스<span class="mat-sub">고급형 · 고가</span>
+          </div>
+          <div class="mat-btn" onclick="setMaterial(this,'동판')">
+            동판<span class="mat-sub">프리미엄</span>
+          </div>
+        </div>
+
+        <!-- 설치 방식 -->
+        <div class="fl" style="margin-top:18px">설치 방식</div>
+        <div class="install-grid" id="installSeg">
+          <div class="install-btn on" onclick="setInstall(this,'벽면 직접')">
+            <span class="inst-icon">🏗</span>
+            <span class="inst-label">벽면 직접</span>
+          </div>
+          <div class="install-btn" onclick="setInstall(this,'돌출 설치')">
+            <span class="inst-icon">📐</span>
+            <span class="inst-label">돌출 설치</span>
+          </div>
+          <div class="install-btn" onclick="setInstall(this,'천장 현수')">
+            <span class="inst-icon">⬆️</span>
+            <span class="inst-label">천장 현수</span>
+          </div>
+          <div class="install-btn" onclick="setInstall(this,'독립 스탠드')">
+            <span class="inst-icon">🚩</span>
+            <span class="inst-label">독립 스탠드</span>
+          </div>
+        </div>
+
+        <!-- 수량 -->
+        <div class="fl" style="margin-top:18px">수량</div>
+        <div class="qty-wrap">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <div class="qty-num" id="qtyDisplay">1</div>
+          <button class="qty-btn" onclick="changeQty(1)">＋</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== 4단계: 견적서 ===== -->
+    <div class="step-panel" id="panel4">
+      <div class="form-body">
+        <div class="preview-card" id="p4PreviewClone" style="padding:0;overflow:hidden;border-radius:var(--radius)">
+          <!-- 공통 미리보기 복제본 — JS로 채움 -->
+        </div>
+
+        <div class="quote-card">
+          <div class="quote-title">견적 내역</div>
+          <div class="quote-row"><span class="label">업체명</span><span class="value" id="q-name">형제삼겹살</span></div>
+          <div class="quote-row"><span class="label">채널 크기</span><span class="value" id="q-size">3000×400mm</span></div>
+          <div class="quote-row"><span class="label">프레임</span><span class="value" id="q-frame">3000×100mm</span></div>
+          <div class="quote-row"><span class="label">재질</span><span class="value" id="q-material">아크릴 채널</span></div>
+          <div class="quote-row"><span class="label">조명</span><span class="value" id="q-light">전광</span></div>
+          <div class="quote-row"><span class="label">설치</span><span class="value" id="q-install">벽면 직접</span></div>
+          <div class="quote-row"><span class="label">수량</span><span class="value" id="q-qty">1개</span></div>
+          <div class="divider"></div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">품목·금액을 직접 수정할 수 있습니다</div>
+          <div id="quoteItems"></div>
+          <button class="btn-add-item" onclick="addQuoteItem()">＋ 품목 추가</button>
+          <div class="quote-total" style="margin-top:12px"><span>합계 (VAT 별도)</span><span class="price" id="q-total">-</span></div>
+        </div>
+
+        <div style="background:#222;border:1px solid var(--border2);border-radius:var(--radius);padding:14px;margin-top:8px">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px;font-weight:600">📋 발행 업체 정보 <span style="font-size:10px;color:var(--text3);font-weight:400">(견적서·PNG에 표시)</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <input class="fi" id="issuerName" placeholder="예) 형제간판집" oninput="state.issuerName=this.value" style="font-size:14px">
+            <input class="fi" id="issuerPhone" placeholder="예) 000-0000-0000" oninput="state.issuerPhone=this.value" style="font-size:14px">
+          </div>
+        </div>
+        <button class="btn-action btn-png" onclick="savePNG()">📷 PNG 시안 저장</button>
+        <button class="btn-action btn-print" onclick="printQuote()">🖨 견적서 출력</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- 푸터 버튼 -->
+  <div class="footer">
+    <div class="btn-back" id="btnBack" onclick="goBack()">←</div>
+    <button class="btn-next" id="btnNext" onclick="goNext()">다음 단계 →</button>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ===== 상태 =====
+var state = {
+  step: 1,
+  bizName: '형제삼겹살',
+  bizSub: '000-0000',
+  industry: '음식점',
+  lightMode: '전광',
+  intensity: 75,
+  textColor: '#ffffff',
+  fontFamily: 'Gothic A1',
+  textBrightness: 1.0,
+  glowColor: '#fdf4c8',
+  frameBg: '#d0d0d0',
+  frameBorder: '#aaa',
+  subTextColor: '#333',
+  sizeW: 2000,
+  sizeH: 300,
+  frameH: 80,
+  material: '아크릴 채널',
+  install: '벽면 직접',
+  qty: 1,
+  issuerName: '',
+  issuerPhone: '',
+  mainPos: 0,
+  subPos: 0
+};
+
+// ===== 스텝 이동 =====
+function goNext() {
+  if (state.step < 4) {
+    state.step++;
+    updateStep();
+  }
+}
+function goBack() {
+  if (state.step > 1) {
+    state.step--;
+    updateStep();
+  }
+}
+function updateStep() {
+  document.querySelectorAll('.step-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel' + state.step).classList.add('active');
+
+  var steps = document.querySelectorAll('#stepbar .step');
+  steps.forEach(function(s, i) {
+    s.classList.remove('done','active');
+    if (i < state.step - 1) s.classList.add('done');
+    else if (i === state.step - 1) s.classList.add('active');
+  });
+
+  document.getElementById('stepLabel').textContent = state.step + '/4단계';
+  document.getElementById('btnBack').style.visibility = state.step === 1 ? 'hidden' : 'visible';
+
+  var nextBtn = document.getElementById('btnNext');
+  if (state.step === 4) {
+    nextBtn.style.display = 'none';
+  } else {
+    nextBtn.style.display = 'flex';
+    nextBtn.textContent = state.step === 3 ? '견적서 보기 →' : '다음 단계 →';
+  }
+
+  if (state.step === 2) { renderP2(); updateBrightnessRow(); }
+  if (state.step === 4) renderQuote();
+
+  document.querySelector('.content').scrollTop = 0;
+}
+
+// ===== 폰트 선택 =====
+function setFont(el, font) {
+  document.querySelectorAll('#fontPicker .font-btn').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  state.fontFamily = font;
+  syncCommon();
+}
+
+// ===== 위치 조절 =====
+function moveMain(d) {
+  state.mainPos = Math.max(-200, Math.min(200, state.mainPos + d));
+  applyPositions();
+}
+function moveSub(d) {
+  state.subPos = Math.max(-200, Math.min(200, state.subPos + d));
+  applyPositions();
+}
+function moveMainY(d) {
+  state.mainPosY = Math.max(-60, Math.min(60, state.mainPosY + d));
+  applyPositions();
+}
+function moveSubY(d) {
+  state.subPosY = Math.max(-30, Math.min(30, state.subPosY + d));
+  applyPositions();
+}
+function resetMain() { state.mainPos = 0; state.mainPosY = 0; applyPositions(); }
+function resetSub()  { state.subPos  = 0; state.subPosY  = 0; applyPositions(); }
+function applyPositions() {
+  var mv = document.getElementById('mainPosVal');
+  var sv = document.getElementById('subPosVal');
+  if (mv) mv.textContent = state.mainPos;
+  if (sv) sv.textContent = state.subPos;
+  syncCommon();
+}
+
+// ===== 1단계 =====
+function syncPreview1() {
+  state.bizName = document.getElementById('bizName').value || '업체명';
+  state.bizSub  = document.getElementById('bizSub').value || '';
+  syncCommon();
+}
+function syncCommon() {
+  var cMain  = document.getElementById('cMain');
+  var cSub   = document.getElementById('cSub');
+  var cFrame = document.getElementById('cFrame');
+  var cHint  = document.getElementById('cHint');
+  var container = document.getElementById('commonContainer');
+  if (!cMain) return;
+
+  // 크기 비율 미리보기 반영
+  var W  = state.sizeW  || 3000;
+  var H  = state.sizeH  || 400;
+  var FH = state.frameH || 100;
+
+  // 총 높이 = 채널H + 프레임FH
+  var totalH = H + FH;
+
+  // 전체를 120px 안에 담음
+  var viewH = 120;
+  // 채널 영역 픽셀
+  var chPx  = Math.round(viewH * H / totalH);
+  // 프레임 영역 픽셀 (최소 8px)
+  var fPx   = Math.max(8, viewH - chPx);
+
+  // 컨테이너 = 채널+프레임 합산
+  if (container) container.style.height = (chPx + fPx) + 'px';
+  // 프레임 바 높이
+  if (cFrame) cFrame.style.height = fPx + 'px';
+  // 메인 폰트: 채널 픽셀의 70% (최소 18, 최대 72)
+  var fs = Math.round(Math.max(18, Math.min(72, chPx * 0.70)));
+  cMain.style.fontSize = fs + 'px';
+
+  cMain.textContent = state.bizName;
+  cSub.textContent  = state.bizSub;
+  cFrame.style.background  = state.frameBg;
+  cFrame.style.borderColor = state.frameBorder;
+  cSub.style.color      = state.subTextColor;
+  cSub.style.textShadow = 'none';
+  cMain.style.left      = state.mainPos + 'px';
+  cMain.style.transform = 'translateY(calc(-50% + ' + (state.mainPosY || 0) + 'px))';
+  cSub.style.right      = (8 - state.subPos) + 'px';
+  cSub.style.top        = 'calc(50% + ' + (state.subPosY || 0) + 'px)';
+  cSub.style.transform  = 'translateY(-50%)';
+
+  if (state.step === 1) {
+    cMain.style.color = state.textColor;
+    cMain.style.textShadow = 'none';
+    cMain.style.filter = '';
+    cMain.style.webkitTextStroke = '0px';
+    if (container) container.style.boxShadow = 'none';
+    if (cHint) cHint.textContent = '업체명과 부제목을 입력하세요';
+  } else {
+    var alpha = state.intensity / 100;
+    applyLight(cMain, container, state.lightMode, state.glowColor, state.textColor, alpha);
+    if (cHint) cHint.textContent = state.lightMode + ' ' + state.intensity + '%';
+  }
+  cMain.style.fontFamily = '"' + state.fontFamily + '", sans-serif';
+}
+// ===== 2단계 =====
+function setSeg(id, el, val) {
+  document.querySelectorAll('#' + id + ' .sb').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  state.lightMode = val;
+  updateBrightnessRow();
+  renderP2();
+}
+function updateBrightnessRow() {
+  var row = document.getElementById('brightnessRow');
+  if (!row) return;
+  var show = (state.lightMode === '후광' || state.lightMode === '전+후광');
+  row.style.display = show ? 'block' : 'none';
+}
+function onBrightness() {
+  var val = parseInt(document.getElementById('textBrightness').value);
+  document.getElementById('brightnessVal').textContent = val + '%';
+  state.textBrightness = val / 100; // 0=투명, 1=번짐거의없음
+  syncCommon();
+}
+function setTextColor(el, c) {
+  document.querySelectorAll('#colorPicker .cp').forEach(function(b){ b.classList.remove('sel'); });
+  el.classList.add('sel');
+  state.textColor = c;
+  renderP2();
+}
+function setGlowColor(el, c) {
+  document.querySelectorAll('#glowPicker .cp').forEach(function(b){ b.classList.remove('sel'); });
+  el.classList.add('sel');
+  state.glowColor = c;
+  renderP2();
+}
+function setFrameColor(el, bg, border, sub) {
+  document.querySelectorAll('#framePicker .cp').forEach(function(b){ b.classList.remove('sel'); });
+  el.classList.add('sel');
+  state.frameBg = bg; state.frameBorder = border; state.subTextColor = sub;
+  renderP2();
+}
+// ===== 조명 공통 적용 =====
+function hexToRgba(hex, alpha) {
+  // hex가 이미 rgba면 그대로 반환
+  if (hex.indexOf('rgb') === 0) return hex;
+  var h = hex.replace('#','');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var r = parseInt(h.slice(0,2),16);
+  var g = parseInt(h.slice(2,4),16);
+  var b = parseInt(h.slice(4,6),16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha.toFixed(3) + ')';
+}
+
+function applyLight(elMain, elContainer, mode, glowColor, textColor, alpha) {
+  var gc = glowColor;
+  var a = alpha;
+  // v5 방식: iv = intensity/50 (50%=1.0 기준, 슬라이더 0~1 → iv 0~2)
+  var iv = a * 2;
+  if (elContainer) elContainer.style.boxShadow = 'none';
+  elMain.style.filter = '';
+  elMain.style.webkitTextStroke = '0px';
+
+  if (mode === '전광') {
+    // v5 전광: color=선택 글자색, 조명색으로 4겹 shadow
+    elMain.style.color = textColor;
+    elMain.style.textShadow = [
+      '0 0 ' + Math.round(6*iv)  + 'px ' + gc,
+      '0 0 ' + Math.round(15*iv) + 'px ' + gc + 'CC',
+      '0 0 ' + Math.round(30*iv) + 'px ' + gc + '88',
+      '0 0 ' + Math.round(50*iv) + 'px ' + gc + '44'
+    ].join(', ');
+
+  } else if (mode === '후광') {
+    // v5 후광: 글자 #1a1a1a + 불투명도 슬라이더로 투명도 조절
+    // 조명색에 따라 hex 알파값으로 6겹 shadow
+    elMain.style.color = hexToRgba('#1a1a1a', state.textBrightness);
+    elMain.style.webkitTextStroke = '0px';
+    var isOrange = (gc === '#f97316');
+    if (isOrange) {
+      elMain.style.textShadow = [
+        '0 0 ' + Math.round(6*iv)   + 'px #FFD580',
+        '0 0 ' + Math.round(15*iv)  + 'px #FFB347EE',
+        '0 0 ' + Math.round(30*iv)  + 'px #FF8C00CC',
+        '0 0 ' + Math.round(55*iv)  + 'px #FF700099',
+        '0 0 ' + Math.round(90*iv)  + 'px #FF450066',
+        '0 0 ' + Math.round(130*iv) + 'px #FF230033'
+      ].join(', ');
+    } else {
+      elMain.style.textShadow = [
+        '0 0 ' + Math.round(8*iv)   + 'px ' + gc,
+        '0 0 ' + Math.round(20*iv)  + 'px ' + gc + 'EE',
+        '0 0 ' + Math.round(40*iv)  + 'px ' + gc + 'CC',
+        '0 0 ' + Math.round(65*iv)  + 'px ' + gc + '99',
+        '0 0 ' + Math.round(100*iv) + 'px ' + gc + '66',
+        '0 0 ' + Math.round(140*iv) + 'px ' + gc + '33'
+      ].join(', ');
+    }
+
+  } else {
+    // 전+후광: 글자 표면도 빛남(전광) + 배경도 빛남(후광)
+    // color = 선택한 글자색 그대로 (textColor)
+    elMain.style.color = textColor;
+    elMain.style.textShadow = [
+      // 전광 부분 — 글자 표면 밀착
+      '0 0 ' + Math.round(6*iv)   + 'px ' + gc,
+      '0 0 ' + Math.round(15*iv)  + 'px ' + gc + 'CC',
+      '0 0 ' + Math.round(30*iv)  + 'px ' + gc + '88',
+      // 후광 부분 — 넓게 퍼짐
+      '0 0 ' + Math.round(55*iv)  + 'px ' + gc + '99',
+      '0 0 ' + Math.round(90*iv)  + 'px ' + gc + '66',
+      '0 0 ' + Math.round(140*iv) + 'px ' + gc + '33'
+    ].join(', ');
+  }
+}
+function renderP2() {
+  state.bizName = document.getElementById('bizName').value || '업체명';
+  state.bizSub  = document.getElementById('bizSub').value || '';
+  state.intensity = parseInt(document.getElementById('intensity').value);
+  document.getElementById('intVal').textContent = state.intensity + '%';
+  syncCommon();
+}
+
+// ===== 3단계 =====
+function setSizePreset(el, w, h, fh) {
+  document.querySelectorAll('#sizePresets .size-preset-btn').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  document.getElementById('sizeW').value = w;
+  document.getElementById('sizeH').value = h;
+  document.getElementById('frameH').value = fh;
+  state.sizeW = w; state.sizeH = h; state.frameH = fh;
+}
+function clearSizePreset() {
+  document.querySelectorAll('#sizePresets .size-preset-btn').forEach(function(b){ b.classList.remove('on'); });
+  state.sizeW  = parseInt(document.getElementById('sizeW').value)  || state.sizeW;
+  state.sizeH  = parseInt(document.getElementById('sizeH').value)  || state.sizeH;
+  state.frameH = parseInt(document.getElementById('frameH').value) || state.frameH;
+
+  syncCommon();
+}
+function setMaterial(el, val) {
+  document.querySelectorAll('#materialSeg .mat-btn').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  state.material = val;
+}
+function setInstall(el, val) {
+  document.querySelectorAll('#installSeg .install-btn').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  state.install = val;
+}
+function changeQty(d) {
+  state.qty = Math.max(1, Math.min(99, state.qty + d));
+  document.getElementById('qtyDisplay').textContent = state.qty;
+}
+
+// ===== 4단계 견적 =====
+function calcPrice() {
+  var wEl = document.getElementById('sizeW');
+  var hEl = document.getElementById('sizeH');
+  var fhEl = document.getElementById('frameH');
+  var w  = wEl  ? (parseInt(wEl.value)  || state.sizeW)  : state.sizeW;
+  var h  = hEl  ? (parseInt(hEl.value)  || state.sizeH)  : state.sizeH;
+  var fh = fhEl ? (parseInt(fhEl.value) || state.frameH) : state.frameH;
+  state.sizeW = w; state.sizeH = h; state.frameH = fh;
+
+  var area = (w / 1000) * (h / 1000); // m²
+  var matBase = { '아크릴 채널': 280000, '알루미늄 채널': 380000, '스테인리스': 520000, '동판': 680000 };
+  var instBase = { '벽면 직접': 80000, '돌출 설치': 150000, '천장 현수': 200000, '독립 스탠드': 250000 };
+  var prod = Math.round(area * (matBase[state.material] || 280000));
+  var elec = Math.round(area * 60000 + (state.lightMode === '전+후광' ? area * 40000 : 0));
+  var inst = instBase[state.install] || 80000;
+  var total = (prod + elec + inst) * state.qty;
+  return { prod: prod, elec: elec, inst: inst, total: total };
+}
+function fmt(n) { return n.toLocaleString('ko-KR') + '원'; }
+function recalcTotal() {
+  var total = 0;
+  quoteItems.forEach(function(item){ total += (item.amount || 0); });
+  total *= state.qty;
+  var el = document.getElementById('q-total');
+  if (el) el.textContent = fmt(total);
+}
+function renderQuote() {
+  state.bizName = document.getElementById('bizName').value || '업체명';
+  state.bizSub  = document.getElementById('bizSub').value || '';
+
+  var p = calcPrice();
+  document.getElementById('q-name').textContent     = state.bizName;
+  document.getElementById('q-size').textContent     = state.sizeW + '×' + state.sizeH + 'mm';
+  document.getElementById('q-frame').textContent    = state.sizeW + '×' + state.frameH + 'mm';
+  document.getElementById('q-material').textContent = state.material;
+  document.getElementById('q-light').textContent    = state.lightMode + ' ' + state.intensity + '%';
+  document.getElementById('q-install').textContent  = state.install;
+  document.getElementById('q-qty').textContent      = state.qty + '개';
+  initQuoteItems(p.prod, p.elec, p.inst);
+
+  syncCommon();
+  // 4단계 미리보기 = 공통 미리보기 HTML 그대로 복제
+  var src = document.getElementById('commonPreview');
+  var dst = document.getElementById('p4PreviewClone');
+  if (src && dst) {
+    dst.innerHTML = src.innerHTML;
+    // 복제된 요소는 인터랙션 불필요, pointer-events 제거
+    dst.style.pointerEvents = 'none';
+    dst.style.userSelect = 'none';
+  }
+}
+
+// ===== 저장/출력 =====
+
+function printQuote() {
+  var total = 0;
+  quoteItems.forEach(function(item){ total += (item.amount||0); });
+  total *= state.qty;
+  var now = new Date();
+  var dateStr = now.getFullYear() + '.' + (now.getMonth()+1) + '.' + now.getDate();
+  var win = window.open('', '_blank');
+  win.document.write('<html><head><meta charset="UTF-8"><title>견적서</title><style>');
+  win.document.write('body{font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;max-width:600px;margin:40px auto;padding:0 20px;color:#1a1a1a}');
+  win.document.write('h1{font-size:22px;font-weight:700;margin-bottom:4px}');
+  win.document.write('.meta{font-size:13px;color:#888;margin-bottom:24px}');
+  win.document.write('table{width:100%;border-collapse:collapse;font-size:14px}');
+  win.document.write('th{background:#f5f5f5;padding:8px 12px;text-align:left;border-bottom:2px solid #ddd;font-weight:600}');
+  win.document.write('td{padding:8px 12px;border-bottom:1px solid #eee}');
+  win.document.write('.total-row td{font-weight:700;font-size:16px;border-top:2px solid #1a1a1a;color:#185FA5}');
+  win.document.write('.footer{margin-top:16px;font-size:11px;color:#aaa;text-align:center}');
+  win.document.write('</style></head><body>');
+  win.document.write('<h1>간판 제작 견적서</h1>');
+  win.document.write('<div class="meta">발행일: ' + dateStr + ' &nbsp;|&nbsp; 업체명: ' + state.bizName + '</div>');
+  win.document.write('<table><tr><th>항목</th><th>내용</th><th>금액</th></tr>');
+  quoteItems.forEach(function(item){
+    win.document.write('<tr><td>' + (item.label||'항목') + '</td><td></td><td>' + fmt(item.amount||0) + '</td></tr>');
+  });
+  win.document.write('<tr><td>수량</td><td>' + state.qty + '개</td><td>×' + state.qty + '</td></tr>');
+  win.document.write('<tr class="total-row"><td colspan="2">합계 (VAT 별도)</td><td>' + fmt(total) + '</td></tr>');
+  win.document.write('</table>');
+  var issuerInfo = '';
+  if (state.issuerName || state.issuerPhone) {
+    issuerInfo = '<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center">' +
+      '<div><div style="font-size:15px;font-weight:700">' + (state.issuerName||'') + '</div>' +
+      '<div style="font-size:13px;color:#666;margin-top:2px">' + (state.issuerPhone||'') + '</div></div>' +
+      '<div style="font-size:11px;color:#aaa">발행처</div></div>';
+  }
+  win.document.write(issuerInfo);
+  win.document.write('<div class="footer">본 견적서는 참고용이며 현장 확인 후 변경될 수 있습니다.</div>');
+  win.document.write('</body></html>');
+  win.document.close();
+  win.print();
+}
+
+
+// ============================================================
+// 배경 프리셋 SVG 건물
+// ============================================================
+var currentBg = 'none';
+
+var BG_PRESETS = {
+  none: { wall:'transparent', ground:'#0d0d0d', desc:'없음' },
+  marble: {
+    wall:'#2a2520', wallPattern:'marble', ground:'#1a1510', desc:'대리석'
+  },
+  cement: {
+    wall:'#2a2e2e', wallPattern:'cement', ground:'#1a1e1e', desc:'시멘트벽'
+  },
+  tile: {
+    wall:'#1a2a38', wallPattern:'tile', ground:'#101820', desc:'타일벽'
+  },
+  white: {
+    wall:'#2a2a28', wallPattern:'plain', ground:'#181818', desc:'흰벽'
+  },
+  brick: {
+    wall:'#3a1810', wallPattern:'brick', ground:'#200e08', desc:'적벽돌'
+  }
+};
+
+function setBg(el, key) {
+  document.querySelectorAll('.bg-preset-btn').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  currentBg = key;
+  renderBgSvg(key);
+}
+
+function renderBgSvg(key) {
+  var svg = document.getElementById('bgSvg');
+  if (!svg) return;
+  if (key === 'none') {
+    svg.style.display = 'none';
+    document.getElementById('bgScene').style.background = '#0d0d0d';
+    return;
+  }
+  svg.style.display = 'block';
+  var p = BG_PRESETS[key];
+  var W = 480, H = 160;
+
+  // 벽 패턴 정의
+  var defs = '';
+  var wallFill = p.wall;
+
+  if (p.wallPattern === 'brick') {
+    defs = '<defs><pattern id="brickPat" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">' +
+      '<rect width="40" height="20" fill="#3a1810"/>' +
+      '<rect x="0" y="0" width="38" height="9" fill="#4a2015" rx="0.5"/>' +
+      '<rect x="20" y="10" width="38" height="9" fill="#4a2015" rx="0.5"/>' +
+      '<rect x="-2" y="10" width="20" height="9" fill="#4a2015" rx="0.5"/>' +
+      '<line x1="0" y1="0" x2="40" y2="0" stroke="#200c06" stroke-width="0.8"/>' +
+      '<line x1="0" y1="10" x2="40" y2="10" stroke="#200c06" stroke-width="0.8"/>' +
+      '<line x1="0" y1="20" x2="40" y2="20" stroke="#200c06" stroke-width="0.8"/>' +
+      '</pattern></defs>';
+    wallFill = 'url(#brickPat)';
+  } else if (p.wallPattern === 'tile') {
+    defs = '<defs><pattern id="tilePat" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">' +
+      '<rect width="30" height="30" fill="#1a2a38"/>' +
+      '<rect x="1" y="1" width="28" height="28" fill="#1e3040" rx="1"/>' +
+      '<line x1="0" y1="0" x2="30" y2="0" stroke="#0a1520" stroke-width="1"/>' +
+      '<line x1="0" y1="0" x2="0" y2="30" stroke="#0a1520" stroke-width="1"/>' +
+      '</pattern></defs>';
+    wallFill = 'url(#tilePat)';
+  } else if (p.wallPattern === 'cement') {
+    defs = '<defs><pattern id="cementPat" x="0" y="0" width="60" height="40" patternUnits="userSpaceOnUse">' +
+      '<rect width="60" height="40" fill="#252a2a"/>' +
+      '<line x1="0" y1="20" x2="60" y2="20" stroke="#1a1f1f" stroke-width="0.8"/>' +
+      '<line x1="0" y1="0" x2="0" y2="40" stroke="#1a1f1f" stroke-width="0.8"/>' +
+      '<line x1="60" y1="0" x2="60" y2="40" stroke="#1a1f1f" stroke-width="0.8"/>' +
+      '</pattern></defs>';
+    wallFill = 'url(#cementPat)';
+  } else if (p.wallPattern === 'marble') {
+    defs = '<defs><linearGradient id="marbleGrad" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="#2a2520"/>' +
+      '<stop offset="40%" stop-color="#221e1a"/>' +
+      '<stop offset="70%" stop-color="#282320"/>' +
+      '<stop offset="100%" stop-color="#1e1a16"/>' +
+      '</linearGradient></defs>';
+    wallFill = 'url(#marbleGrad)';
+  }
+
+  var skyGrad = ''; // 야간 심플 모드 — 하늘 없음
+
+  // 건물 구조 (1층 상가)
+  // 레이아웃: W=480, H=160
+  // 하늘 배경 상단 40px
+  // 건물 본체: y=0~140
+  // 바닥: y=140~160
+
+  var skyH = 0;   // 하늘 없음 — 벽면 전체
+  var floorY = 150;
+  var wallTop = 0;
+  var wallH = floorY;
+
+  var svgContent = defs +
+    // 벽면 — 재질 패턴만
+    '<rect x="0" y="0" width="' + W + '" height="' + floorY + '" fill="' + wallFill + '"/>' +
+
+    // 상단 몰딩 라인
+    '<rect x="0" y="0" width="' + W + '" height="4" fill="rgba(0,0,0,0.4)"/>' +
+    '<rect x="0" y="4" width="' + W + '" height="1.5" fill="rgba(255,255,255,0.15)"/>' +
+
+    // 하단 몰딩 라인 (벽/바닥 경계)
+    '<rect x="0" y="' + (floorY-4) + '" width="' + W + '" height="4" fill="rgba(0,0,0,0.35)"/>' +
+
+    // 바닥 (야간 아스팔트)
+    '<rect x="0" y="' + floorY + '" width="' + W + '" height="' + (H-floorY) + '" fill="' + (p.ground||"#0d0d0d") + '"/>' +
+    // 바닥 반사 (야간 느낌)
+    '<rect x="0" y="' + floorY + '" width="' + W + '" height="' + Math.round((H-floorY)*0.4) + '" fill="rgba(255,255,255,0.03)"/>' +
+    '';
+
+  svg.innerHTML = svgContent;
+  document.getElementById('bgScene').style.background = '#0d0d0d';
+}
+
+// ============================================================
+// 견적 품목 동적 추가/삭제
+// ============================================================
+var quoteItems = [];
+
+function initQuoteItems(prod, elec, inst) {
+  quoteItems = [
+    { label:'채널 제작', amount: prod },
+    { label:'조명·배선', amount: elec },
+    { label:'설치 시공', amount: inst }
+  ];
+  renderQuoteItems();
+}
+function addQuoteItem() {
+  quoteItems.push({ label:'', amount: 0 });
+  renderQuoteItems();
+  recalcTotal();
+}
+function removeQuoteItem(idx) {
+  quoteItems.splice(idx, 1);
+  renderQuoteItems();
+  recalcTotal();
+}
+function renderQuoteItems() {
+  var container = document.getElementById('quoteItems');
+  if (!container) return;
+  container.innerHTML = '';
+  quoteItems.forEach(function(item, i) {
+    var row = document.createElement('div');
+    row.className = 'quote-add-row';
+    row.innerHTML =
+      '<input class="quote-add-input" placeholder="품목명" value="' + (item.label||'') + '" oninput="quoteItems[' + i + '].label=this.value">' +
+      '<input class="q-input" type="number" placeholder="0" value="' + (item.amount||0) + '" oninput="quoteItems[' + i + '].amount=parseInt(this.value)||0;recalcTotal()">' +
+      (quoteItems.length > 1 ? '<button class="quote-del-btn" onclick="removeQuoteItem(' + i + ')">×</button>' : '');
+    container.appendChild(row);
+  });
+}
+function recalcTotal() {
+  var total = 0;
+  quoteItems.forEach(function(item){ total += (item.amount||0); });
+  total *= state.qty;
+  var el = document.getElementById('q-total');
+  if (el) el.textContent = total.toLocaleString('ko-KR') + '원';
+}
+
+// ============================================================
+// PNG 저장 (html2canvas CDN)
+// ============================================================
+function savePNG() {
+  var el = document.getElementById('commonPreview');
+  if (!el) { alert('미리보기를 찾을 수 없습니다.'); return; }
+  if (typeof html2canvas === 'undefined') {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload = function(){ doCapture(el); };
+    document.head.appendChild(s);
+  } else {
+    doCapture(el);
+  }
+}
+function doCapture(el) {
+  html2canvas(el, { useCORS:true, backgroundColor:'#000', scale:2 }).then(function(canvas){
+    var a = document.createElement('a');
+    a.download = (state.bizName||'시안') + '_SignCheonha.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+}
+
+// 초기화
+updateStep();
+syncPreview1();
+syncCommon();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg) { console.log('SW 등록:', reg.scope); })
+      .catch(function(err) { console.log('SW 실패:', err); });
+  });
+}
+</script>
+</body>
+</html>
