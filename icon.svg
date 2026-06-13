@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0d0d0d"/>
+  <!-- 간판 프레임 -->
+  <rect x="40" y="180" width="432" height="152" rx="10" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="3"/>
+  <!-- 간판 상단 채널 영역 -->
+  <rect x="40" y="140" width="432" height="56" rx="6" fill="#181818"/>
+  <!-- SC 텍스트 -->
+  <text x="256" y="232" font-family="Arial Black, sans-serif" font-size="110" font-weight="900"
+    text-anchor="middle" dominant-baseline="central"
+    fill="white"
+    filter="url(#glow)">SC</text>
+  <!-- 하단 라인 -->
+  <rect x="80" y="308" width="352" height="18" rx="4" fill="#2878cc" opacity="0.7"/>
+  <text x="256" y="360" font-family="Arial, sans-serif" font-size="32" font-weight="600"
+    text-anchor="middle" fill="#a0a0a0">SignCheonha Lite</text>
+  <defs>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+</svg>
