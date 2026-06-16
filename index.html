@@ -86,7 +86,7 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
   padding: 0; z-index: 1; overflow: hidden;
   transition: background 0.3s, border-color 0.3s;
 }
-.ch-sub { font-size: 11px; font-weight: 500; white-space: nowrap; position: absolute; right: 8px; transition: right 0.15s; }
+.ch-sub { font-size: 11px; font-weight: 500; white-space: nowrap; position: absolute; right: 10px; transition: right 0.15s; }
 .preview-hint { font-size: 10px; color: #666; text-align: center; margin-top: 10px; width: 100%; }
 
 /* 폼 */
@@ -220,7 +220,7 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
     <div id="bgScene" style="width:100%;position:relative;overflow:hidden;min-height:160px">
       <svg id="bgSvg" viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
       <!-- 간판 오버레이 — 코니스 바로 아래 상단 고정 -->
-      <div style="position:absolute;left:0;right:0;top:35px;padding:0 16px;z-index:5">
+      <div style="position:absolute;left:0;right:0;top:35px;padding:0 24px;z-index:5">
         <div class="sign-container" id="commonContainer" style="height:80px">
           <div class="frame-bar" id="cFrame">
             <span class="ch-sub" id="cSub">000-0000</span>
@@ -1146,7 +1146,7 @@ function recalcTotal() {
 // PNG 저장 (html2canvas CDN)
 // ============================================================
 function savePNG() {
-  var el = document.getElementById('commonPreview');
+  var el = document.getElementById('bgScene');
   if (!el) { alert('미리보기를 찾을 수 없습니다.'); return; }
   if (typeof html2canvas === 'undefined') {
     var s = document.createElement('script');
@@ -1158,12 +1158,22 @@ function savePNG() {
   }
 }
 function doCapture(el) {
-  html2canvas(el, { useCORS:true, backgroundColor:'#000', scale:2 }).then(function(canvas){
-    var a = document.createElement('a');
-    a.download = (displayName(state.bizName)||'시안') + '_SignCheonha.png';
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-  });
+  // SVG 패턴이 캡처 시점에 누락되는 경우가 있어 약간 지연 후 캡처
+  setTimeout(function() {
+    html2canvas(el, {
+      useCORS: true,
+      backgroundColor: '#0d0d0d',
+      scale: 2,
+      logging: false
+    }).then(function(canvas){
+      var a = document.createElement('a');
+      a.download = (displayName(state.bizName)||'시안') + '_SignCheonha.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }).catch(function(err){
+      alert('이미지 저장 중 오류가 발생했습니다: ' + err.message);
+    });
+  }, 100);
 }
 
 // 초기화
