@@ -292,7 +292,39 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
     <!-- ===== 2단계<!-- ===== 2단계: 프레임 & 조명 ===== -->
     <div class="step-panel" id="panel2">
       <div class="form-body">
-        <div class="fl">조명 방식</div>
+        <div class="fl">위치 조절</div>
+        <div class="pos-row">
+          <span class="pos-label">업체명</span>
+          <div class="pos-btns">
+            <button class="pos-btn" onclick="moveMain(-8)">◀◀</button>
+            <button class="pos-btn" onclick="moveMain(-2)">◀</button>
+            <span class="pos-val" id="mainPosVal">0</span>
+            <button class="pos-btn" onclick="moveMain(2)">▶</button>
+            <button class="pos-btn" onclick="moveMain(8)">▶▶</button>
+          </div>
+          <div class="pos-ud">
+            <button class="pos-ud-btn" onclick="moveMainY(-3)">▲</button>
+            <button class="pos-ud-btn" onclick="moveMainY(3)">▼</button>
+          </div>
+          <button class="pos-reset" onclick="resetMain()">리셋</button>
+        </div>
+        <div class="pos-row" style="margin-top:8px">
+          <span class="pos-label">부제목</span>
+          <div class="pos-btns">
+            <button class="pos-btn" onclick="moveSub(-8)">◀◀</button>
+            <button class="pos-btn" onclick="moveSub(-2)">◀</button>
+            <span class="pos-val" id="subPosVal">0</span>
+            <button class="pos-btn" onclick="moveSub(2)">▶</button>
+            <button class="pos-btn" onclick="moveSub(8)">▶▶</button>
+          </div>
+          <div class="pos-ud">
+            <button class="pos-ud-btn" onclick="moveSubY(-3)">▲</button>
+            <button class="pos-ud-btn" onclick="moveSubY(3)">▼</button>
+          </div>
+          <button class="pos-reset" onclick="resetSub()">리셋</button>
+        </div>
+
+        <div class="fl" style="margin-top:18px">조명 방식</div>
         <div class="seg" id="lightSeg">
           <div class="sb on" onclick="setSeg('lightSeg',this,'전광')">전광</div>
           <div class="sb" onclick="setSeg('lightSeg',this,'후광')">후광</div>
@@ -347,38 +379,6 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
           <div class="color-item"><div class="cp" style="background:#1e3a5f" onclick="setFrameColor(this,'#1e3a5f','#2a5f9e','#b0c8e8')"></div><span class="cp-name">네이비</span></div>
           <div class="color-item"><div class="cp" style="background:#8B6914" onclick="setFrameColor(this,'#8B6914','#b8860b','#f0d87a')"></div><span class="cp-name">브론즈</span></div>
           <div class="color-item"><div class="cp" style="background:#1a3320" onclick="setFrameColor(this,'#1a3320','#2d5c38','#8ecfa0')"></div><span class="cp-name">다크그린</span></div>
-        </div>
-
-        <div class="fl">위치 조절</div>
-        <div class="pos-row">
-          <span class="pos-label">업체명</span>
-          <div class="pos-btns">
-            <button class="pos-btn" onclick="moveMain(-8)">◀◀</button>
-            <button class="pos-btn" onclick="moveMain(-2)">◀</button>
-            <span class="pos-val" id="mainPosVal">0</span>
-            <button class="pos-btn" onclick="moveMain(2)">▶</button>
-            <button class="pos-btn" onclick="moveMain(8)">▶▶</button>
-          </div>
-          <div class="pos-ud">
-            <button class="pos-ud-btn" onclick="moveMainY(-3)">▲</button>
-            <button class="pos-ud-btn" onclick="moveMainY(3)">▼</button>
-          </div>
-          <button class="pos-reset" onclick="resetMain()">리셋</button>
-        </div>
-        <div class="pos-row" style="margin-top:8px">
-          <span class="pos-label">부제목</span>
-          <div class="pos-btns">
-            <button class="pos-btn" onclick="moveSub(-8)">◀◀</button>
-            <button class="pos-btn" onclick="moveSub(-2)">◀</button>
-            <span class="pos-val" id="subPosVal">0</span>
-            <button class="pos-btn" onclick="moveSub(2)">▶</button>
-            <button class="pos-btn" onclick="moveSub(8)">▶▶</button>
-          </div>
-          <div class="pos-ud">
-            <button class="pos-ud-btn" onclick="moveSubY(-3)">▲</button>
-            <button class="pos-ud-btn" onclick="moveSubY(3)">▼</button>
-          </div>
-          <button class="pos-reset" onclick="resetSub()">리셋</button>
         </div>
       </div>
     </div>
