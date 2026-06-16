@@ -225,7 +225,7 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
           <div class="frame-bar" id="cFrame">
             <span class="ch-sub" id="cSub">000-0000</span>
           </div>
-          <span class="ch-main" id="cMain" style="color:#fff;text-shadow:none">형제삼겹살</span>
+          <span class="ch-main" id="cMain" style="color:#fff;text-shadow:none"><span id="cMain1">형제</span><span id="cMain2">삼겹살</span></span>
         </div>
       </div>
     </div>
@@ -249,7 +249,8 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
     <div class="step-panel active" id="panel1">
       <div class="form-body">
         <div class="fl">업체명</div>
-        <input class="fi" id="bizName" value="형제삼겹살" placeholder="업체명을 입력하세요" oninput="syncPreview1()">
+        <input class="fi" id="bizName" value="형제|삼겹살" placeholder="업체명을 입력하세요 (예: 형제|삼겹살)" oninput="syncPreview1()">
+        <div class="fl-note" style="margin-top:4px;display:block">색을 나누고 싶으면 <code style="background:#222;padding:1px 5px;border-radius:4px;color:var(--text1)">|</code> 기호로 구분하세요 (2단계에서 설정)</div>
         <div class="fl">부제목 <span class="fl-note">(전화번호·슬로건 등, 조명 미적용)</span></div>
         <input class="fi" id="bizSub" value="000-0000" placeholder="예) 031-000-0000" oninput="syncPreview1()">
         <div class="fl" style="margin-top:16px">폰트 선택</div>
@@ -358,6 +359,25 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
           <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setTextColor(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
           <div class="color-item"><div class="cp" style="background:#3b82f6" onclick="setTextColor(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
           <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setTextColor(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-top:14px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2)">
+            <input type="checkbox" id="splitColorToggle" onchange="toggleSplitColor()" style="width:16px;height:16px;accent-color:var(--blue-mid)">
+            업체명 색상 구분 (업체명에 <code style="background:#222;padding:1px 5px;border-radius:4px;color:var(--text1)">|</code> 입력 시 앞/뒤 다른 색)
+          </label>
+        </div>
+        <div id="colorPicker2Wrap" style="display:none;margin-top:8px">
+          <div class="fl-note" style="margin-bottom:4px">두번째 색상 (| 뒷부분)</div>
+          <div class="color-row" id="colorPicker2">
+            <div class="color-item"><div class="cp" style="background:#111111" onclick="setTextColor2(this,'#111111')"></div><span class="cp-name">검정</span></div>
+            <div class="color-item"><div class="cp" style="background:#ffffff;box-shadow:inset 0 0 0 1px #ccc" onclick="setTextColor2(this,'#ffffff')"></div><span class="cp-name">흰색</span></div>
+            <div class="color-item"><div class="cp" style="background:#d4af37" onclick="setTextColor2(this,'#d4af37')"></div><span class="cp-name">골드</span></div>
+            <div class="color-item"><div class="cp" style="background:#f97316" onclick="setTextColor2(this,'#f97316')"></div><span class="cp-name">주황</span></div>
+            <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setTextColor2(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
+            <div class="color-item"><div class="cp sel" style="background:#3b82f6" onclick="setTextColor2(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
+            <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setTextColor2(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
+          </div>
         </div>
 
         <div class="fl">조명색</div>
@@ -517,7 +537,9 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
 // ===== 상태 =====
 var state = {
   step: 1,
-  bizName: '형제삼겹살',
+  bizName: '형제|삼겹살',
+  textColor2: '#3b82f6',
+  splitColorOn: false,
   bizSub: '000-0000',
   industry: '음식점',
   lightMode: '전광',
@@ -654,7 +676,19 @@ function syncCommon() {
   var fs = Math.round(Math.max(18, Math.min(72, chPx * 0.70)));
   cMain.style.fontSize = fs + 'px';
 
-  cMain.textContent = state.bizName;
+  // 업체명 텍스트 — | 구분자로 분할
+  var cMain1 = document.getElementById('cMain1');
+  var cMain2 = document.getElementById('cMain2');
+  var rawName = state.bizName || '업체명';
+  if (state.splitColorOn && rawName.indexOf('|') > -1) {
+    var parts = rawName.split('|');
+    cMain1.textContent = parts[0] || '';
+    cMain2.textContent = parts.slice(1).join('') || '';
+  } else {
+    cMain1.textContent = rawName.replace(/\|/g, '');
+    cMain2.textContent = '';
+  }
+
   cSub.textContent  = state.bizSub;
   cFrame.style.background  = state.frameBg;
   cFrame.style.borderColor = state.frameBorder;
@@ -667,15 +701,19 @@ function syncCommon() {
   cSub.style.transform  = 'translateY(-50%)';
 
   if (state.step === 1) {
-    cMain.style.color = state.textColor;
-    cMain.style.textShadow = 'none';
-    cMain.style.filter = '';
-    cMain.style.webkitTextStroke = '0px';
+    [cMain1, cMain2].forEach(function(el, i){
+      el.style.color = (state.splitColorOn && i === 1) ? state.textColor2 : state.textColor;
+      el.style.textShadow = 'none';
+      el.style.filter = '';
+      el.style.webkitTextStroke = '0px';
+    });
     if (container) container.style.boxShadow = 'none';
     if (cHint) cHint.textContent = '업체명과 부제목을 입력하세요';
   } else {
     var alpha = state.intensity / 100;
-    applyLight(cMain, container, state.lightMode, state.glowColor, state.textColor, alpha);
+    applyLight(cMain1, container, state.lightMode, state.glowColor, state.textColor, alpha);
+    var color2 = state.splitColorOn ? state.textColor2 : state.textColor;
+    applyLight(cMain2, null, state.lightMode, state.glowColor, color2, alpha);
     if (cHint) cHint.textContent = state.lightMode + ' ' + state.intensity + '%';
   }
   cMain.style.fontFamily = '"' + state.fontFamily + '", sans-serif';
@@ -706,6 +744,17 @@ function setTextColor(el, c) {
   state.textColor = c;
   renderP2();
 }
+function setTextColor2(el, c) {
+  document.querySelectorAll('#colorPicker2 .cp').forEach(function(b){ b.classList.remove('sel'); });
+  el.classList.add('sel');
+  state.textColor2 = c;
+  renderP2();
+}
+function toggleSplitColor() {
+  state.splitColorOn = document.getElementById('splitColorToggle').checked;
+  document.getElementById('colorPicker2Wrap').style.display = state.splitColorOn ? 'block' : 'none';
+  syncCommon();
+}
 function setGlowColor(el, c) {
   document.querySelectorAll('#glowPicker .cp').forEach(function(b){ b.classList.remove('sel'); });
   el.classList.add('sel');
@@ -719,6 +768,9 @@ function setFrameColor(el, bg, border, sub) {
   renderP2();
 }
 // ===== 조명 공통 적용 =====
+function displayName(name) {
+  return (name || '').replace(/\|/g, '');
+}
 function hexToRgba(hex, alpha) {
   // hex가 이미 rgba면 그대로 반환
   if (hex.indexOf('rgb') === 0) return hex;
@@ -863,7 +915,7 @@ function renderQuote() {
   state.bizSub  = document.getElementById('bizSub').value || '';
 
   var p = calcPrice();
-  document.getElementById('q-name').textContent     = state.bizName;
+  document.getElementById('q-name').textContent     = displayName(state.bizName);
   document.getElementById('q-size').textContent     = state.sizeW + '×' + state.sizeH + 'mm';
   document.getElementById('q-frame').textContent    = state.sizeW + '×' + state.frameH + 'mm';
   document.getElementById('q-material').textContent = state.material;
@@ -904,7 +956,7 @@ function printQuote() {
   win.document.write('.footer{margin-top:16px;font-size:11px;color:#aaa;text-align:center}');
   win.document.write('</style></head><body>');
   win.document.write('<h1>간판 제작 견적서</h1>');
-  win.document.write('<div class="meta">발행일: ' + dateStr + ' &nbsp;|&nbsp; 업체명: ' + state.bizName + '</div>');
+  win.document.write('<div class="meta">발행일: ' + dateStr + ' &nbsp;|&nbsp; 업체명: ' + displayName(state.bizName) + '</div>');
   win.document.write('<table><tr><th>항목</th><th>내용</th><th>금액</th></tr>');
   quoteItems.forEach(function(item){
     win.document.write('<tr><td>' + (item.label||'항목') + '</td><td></td><td>' + fmt(item.amount||0) + '</td></tr>');
@@ -1108,7 +1160,7 @@ function savePNG() {
 function doCapture(el) {
   html2canvas(el, { useCORS:true, backgroundColor:'#000', scale:2 }).then(function(canvas){
     var a = document.createElement('a');
-    a.download = (state.bizName||'시안') + '_SignCheonha.png';
+    a.download = (displayName(state.bizName)||'시안') + '_SignCheonha.png';
     a.href = canvas.toDataURL('image/png');
     a.click();
   });
