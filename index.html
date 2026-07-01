@@ -1152,6 +1152,7 @@ function initQuoteItems(prod, elec, inst) {
     { label:'장비(스카이)', qty: 1, amount: 0 }
   ];
   renderQuoteItems();
+  recalcTotal();
 }
 function addQuoteItem() {
   quoteItems.push({ label:'', qty: 1, amount: 0 });
