@@ -76,7 +76,7 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
   z-index: 2;
   font-weight: 900; line-height: 1; white-space: nowrap;
   transition: color 0.3s, text-shadow 0.3s, left 0.15s;
-  font-size: clamp(34px, 13vw, 62px); letter-spacing: 2px;
+  font-size: clamp(22px, 8vw, 52px); letter-spacing: 2px;
 }
 .frame-bar {
   position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
@@ -161,7 +161,9 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
 .bg-preset-btn.on { border-color:var(--blue-mid); background:var(--blue-light); color:#0C447C; font-weight:600; }
 
 /* 견적서 품목 추가 */
-.quote-add-row { display:flex; gap:8px; margin-top:8px; }
+.quote-add-row { display:flex; gap:6px; margin-top:8px; align-items:center; }
+.q-qty { width:52px; height:34px; border:1px solid var(--border2); border-radius:6px; padding:0 6px; font-size:13px; color:var(--text1); background:#222; text-align:center; outline:none; flex-shrink:0; }
+.q-unit { font-size:11px; color:var(--text3); flex-shrink:0; min-width:24px; text-align:center; }
 .quote-add-input { flex:1; height:34px; border:1px solid var(--border2); border-radius:6px; padding:0 10px; font-size:13px; color:var(--text1); background:#222; outline:none; }
 .quote-add-input:focus { border-color:var(--blue-mid); }
 .quote-del-btn { width:30px; height:34px; border:1px solid #fca5a5; border-radius:6px; background:#fff5f5; color:#ef4444; font-size:16px; cursor:pointer; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
@@ -205,6 +207,7 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
     <div class="header-row">
       <div class="header-title">SignCheonha Lite</div>
       <div class="header-step" id="stepLabel">1/4단계</div>
+      <div id="trialBadge" style="font-size:10px;color:#606060;margin-left:8px"></div>
     </div>
     <div class="stepbar" id="stepbar">
       <div class="step active"></div>
@@ -437,6 +440,16 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
         <div class="size-input-wrap" style="margin-top:8px">
           <label>프레임 세로 (mm)</label>
           <input class="fi" id="frameH" type="number" value="80" placeholder="80" oninput="clearSizePreset()">
+        <div class="size-custom-row" style="margin-top:8px">
+          <div class="size-input-wrap">
+            <label>프레임 가로 (mm)</label>
+            <input class="fi" id="frameW" type="number" value="2000" placeholder="채널 가로와 동일" oninput="clearSizePreset()">
+          </div>
+          <div class="size-input-wrap">
+            <label style="color:var(--text3);font-size:10px">채널 가로 대비 비율</label>
+            <div id="frameWRatio" style="height:42px;display:flex;align-items:center;font-size:18px;font-weight:700;color:var(--blue-mid)">100%</div>
+          </div>
+        </div>
         </div>
 
         <!-- 채널 재질 -->
@@ -554,6 +567,7 @@ var state = {
   sizeW: 2000,
   sizeH: 300,
   frameH: 80,
+  frameW: 2000,
   material: '아크릴 채널',
   install: '벽면 직접',
   qty: 1,
@@ -599,9 +613,30 @@ function updateStep() {
   }
 
   if (state.step === 2) { renderP2(); updateBrightnessRow(); }
-  if (state.step === 4) renderQuote();
+  if (state.step === 4) {
+    var cnt = incrementTrial();
+    renderQuote();
+    if (cnt > TRIAL_MAX) {
+      setTimeout(showBuyModal, 300);
+    } else {
+      var remain = TRIAL_MAX - cnt;
+      if (remain === 0) {
+        setTimeout(function(){
+          showBuyModal();
+        }, 300);
+      }
+    }
+  }
 
   document.querySelector('.content').scrollTop = 0;
+  // 남은 무료 횟수 뱃지
+  var badge = document.getElementById('trialBadge');
+  if (badge) {
+    var used = getTrialCount();
+    var left = Math.max(0, TRIAL_MAX - used);
+    badge.textContent = left > 0 ? '무료 ' + left + '회 남음' : '체험 종료';
+    badge.style.color = left <= 1 ? '#ef4444' : '#606060';
+  }
 }
 
 // ===== 폰트 선택 =====
@@ -662,7 +697,7 @@ function syncCommon() {
   var totalH = H + FH;
 
   // 전체를 120px 안에 담음
-  var viewH = 120;
+  var viewH = 100;
   // 채널 영역 픽셀
   var chPx  = Math.round(viewH * H / totalH);
   // 프레임 영역 픽셀 (최소 8px)
@@ -672,8 +707,16 @@ function syncCommon() {
   if (container) container.style.height = (chPx + fPx) + 'px';
   // 프레임 바 높이
   if (cFrame) cFrame.style.height = fPx + 'px';
+  // 프레임 가로 비율 적용
+  var FW = state.frameW || state.sizeW || W;
+  var frameWRatio = Math.min(1, FW / (state.sizeW || FW));
+  if (cFrame) cFrame.style.width = Math.round(frameWRatio * 100) + '%';
+  if (cFrame) cFrame.style.right = 'auto';
+  // 비율 표시
+  var ratioEl = document.getElementById('frameWRatio');
+  if (ratioEl) ratioEl.textContent = Math.round(frameWRatio * 100) + '%';
   // 메인 폰트: 채널 픽셀의 70% (최소 18, 최대 72)
-  var fs = Math.round(Math.max(18, Math.min(72, chPx * 0.70)));
+  var fs = Math.round(Math.max(16, Math.min(56, chPx * 0.60)));
   cMain.style.fontSize = fs + 'px';
 
   // 업체명 텍스트 — | 구분자로 분할
@@ -858,13 +901,16 @@ function setSizePreset(el, w, h, fh) {
   document.getElementById('sizeW').value = w;
   document.getElementById('sizeH').value = h;
   document.getElementById('frameH').value = fh;
-  state.sizeW = w; state.sizeH = h; state.frameH = fh;
+  document.getElementById('frameW').value = w;
+  state.sizeW = w; state.sizeH = h; state.frameH = fh; state.frameW = w;
+  syncCommon();
 }
 function clearSizePreset() {
   document.querySelectorAll('#sizePresets .size-preset-btn').forEach(function(b){ b.classList.remove('on'); });
   state.sizeW  = parseInt(document.getElementById('sizeW').value)  || state.sizeW;
   state.sizeH  = parseInt(document.getElementById('sizeH').value)  || state.sizeH;
   state.frameH = parseInt(document.getElementById('frameH').value) || state.frameH;
+  state.frameW = parseInt(document.getElementById('frameW').value) || state.sizeW;
 
   syncCommon();
 }
@@ -888,10 +934,12 @@ function calcPrice() {
   var wEl = document.getElementById('sizeW');
   var hEl = document.getElementById('sizeH');
   var fhEl = document.getElementById('frameH');
+  var fwEl = document.getElementById('frameW');
   var w  = wEl  ? (parseInt(wEl.value)  || state.sizeW)  : state.sizeW;
   var h  = hEl  ? (parseInt(hEl.value)  || state.sizeH)  : state.sizeH;
   var fh = fhEl ? (parseInt(fhEl.value) || state.frameH) : state.frameH;
-  state.sizeW = w; state.sizeH = h; state.frameH = fh;
+  var fw = fwEl ? (parseInt(fwEl.value) || state.frameW || w) : (state.frameW || w);
+  state.sizeW = w; state.sizeH = h; state.frameH = fh; state.frameW = fw;
 
   var area = (w / 1000) * (h / 1000); // m²
   var matBase = { '아크릴 채널': 280000, '알루미늄 채널': 380000, '스테인리스': 520000, '동판': 680000 };
@@ -917,7 +965,7 @@ function renderQuote() {
   var p = calcPrice();
   document.getElementById('q-name').textContent     = displayName(state.bizName);
   document.getElementById('q-size').textContent     = state.sizeW + '×' + state.sizeH + 'mm';
-  document.getElementById('q-frame').textContent    = state.sizeW + '×' + state.frameH + 'mm';
+  document.getElementById('q-frame').textContent    = (state.frameW||state.sizeW) + '×' + state.frameH + 'mm';
   document.getElementById('q-material').textContent = state.material;
   document.getElementById('q-light').textContent    = state.lightMode + ' ' + state.intensity + '%';
   document.getElementById('q-install').textContent  = state.install;
@@ -959,7 +1007,9 @@ function printQuote() {
   win.document.write('<div class="meta">발행일: ' + dateStr + ' &nbsp;|&nbsp; 업체명: ' + displayName(state.bizName) + '</div>');
   win.document.write('<table><tr><th>항목</th><th>내용</th><th>금액</th></tr>');
   quoteItems.forEach(function(item){
-    win.document.write('<tr><td>' + (item.label||'항목') + '</td><td></td><td>' + fmt(item.amount||0) + '</td></tr>');
+    var sub = (item.qty||1) * (item.amount||0);
+    var qtyStr = (item.qty||1) > 1 ? (item.qty||1) + '개' : '';
+    win.document.write('<tr><td>' + (item.label||'항목') + '</td><td style="color:#888">' + qtyStr + '</td><td>' + fmt(sub) + '</td></tr>');
   });
   win.document.write('<tr><td>수량</td><td>' + state.qty + '개</td><td>×' + state.qty + '</td></tr>');
   win.document.write('<tr class="total-row"><td colspan="2">합계 (VAT 별도)</td><td>' + fmt(total) + '</td></tr>');
@@ -1103,15 +1153,19 @@ function renderBgSvg(key) {
 var quoteItems = [];
 
 function initQuoteItems(prod, elec, inst) {
+  // 글자 수 기반 채널 수량 계산
+  var nameLen = (state.bizName || '').replace(/\|/g, '').length || 1;
+  var unitPrice = nameLen > 0 ? Math.round(100000 / nameLen) * nameLen > 0 ? 100000 : 100000 : 100000;
   quoteItems = [
-    { label:'채널 제작', amount: prod },
-    { label:'조명·배선', amount: elec },
-    { label:'설치 시공', amount: inst }
+    { label:'채널 제작', qty: nameLen, amount: 100000 },
+    { label:'조명·배선 인건비', qty: 1, amount: 150000 },
+    { label:'설치 시공', qty: 1, amount: 150000 },
+    { label:'장비(스카이)', qty: 1, amount: 0 }
   ];
   renderQuoteItems();
 }
 function addQuoteItem() {
-  quoteItems.push({ label:'', amount: 0 });
+  quoteItems.push({ label:'', qty: 1, amount: 0 });
   renderQuoteItems();
   recalcTotal();
 }
@@ -1125,18 +1179,21 @@ function renderQuoteItems() {
   if (!container) return;
   container.innerHTML = '';
   quoteItems.forEach(function(item, i) {
+    var subtotal = (item.qty||1) * (item.amount||0);
     var row = document.createElement('div');
     row.className = 'quote-add-row';
     row.innerHTML =
       '<input class="quote-add-input" placeholder="품목명" value="' + (item.label||'') + '" oninput="quoteItems[' + i + '].label=this.value">' +
-      '<input class="q-input" type="number" placeholder="0" value="' + (item.amount||0) + '" oninput="quoteItems[' + i + '].amount=parseInt(this.value)||0;recalcTotal()">' +
-      (quoteItems.length > 1 ? '<button class="quote-del-btn" onclick="removeQuoteItem(' + i + ')">×</button>' : '');
+      '<input class="q-qty" type="number" placeholder="1" value="' + (item.qty||1) + '" title="수량" oninput="quoteItems[' + i + '].qty=parseInt(this.value)||1;recalcTotal()">' +
+      '<span class="q-unit">×</span>' +
+      '<input class="q-input" type="number" placeholder="단가" value="' + (item.amount||0) + '" oninput="quoteItems[' + i + '].amount=parseInt(this.value)||0;recalcTotal()">' +
+      (quoteItems.length > 1 ? '<button class="quote-del-btn" onclick="removeQuoteItem(' + i + ')">×</button>' : '<span style="width:28px"></span>');
     container.appendChild(row);
   });
 }
 function recalcTotal() {
   var total = 0;
-  quoteItems.forEach(function(item){ total += (item.amount||0); });
+  quoteItems.forEach(function(item){ total += (item.qty||1) * (item.amount||0); });
   total *= state.qty;
   var el = document.getElementById('q-total');
   if (el) el.textContent = total.toLocaleString('ko-KR') + '원';
@@ -1176,11 +1233,83 @@ function doCapture(el) {
   }, 100);
 }
 
+// ===== 무료 체험 관리 =====
+var TRIAL_KEY = 'scl_trial_count';
+var TRIAL_MAX = 5;
+
+function getTrialCount() {
+  return parseInt(localStorage.getItem(TRIAL_KEY) || '0');
+}
+function incrementTrial() {
+  var cnt = getTrialCount() + 1;
+  localStorage.setItem(TRIAL_KEY, cnt);
+  return cnt;
+}
+function checkTrial() {
+  var cnt = getTrialCount();
+  return cnt < TRIAL_MAX;
+}
+function showBuyModal() {
+  var modal = document.getElementById('buyModal');
+  var remain = document.getElementById('trialRemain');
+  if (remain) remain.textContent = '무료 사용 ' + TRIAL_MAX + '/' + TRIAL_MAX + '회 완료';
+  if (modal) { modal.style.display = 'flex'; }
+}
+function closeBuyModal() {
+  var modal = document.getElementById('buyModal');
+  if (modal) modal.style.display = 'none';
+}
+function submitBuyRequest() {
+  var email = document.getElementById('buyEmail').value.trim();
+  if (!email || email.indexOf('@') < 0) {
+    alert('이메일 주소를 정확히 입력해주세요.');
+    return;
+  }
+  alert('구매 신청이 접수되었습니다!\n\n입금 후 ' + email + ' 으로\n정품 파일을 발송해드립니다.\n\n농협 010-5469-0568-09 (김기석)');
+}
+
 // 초기화
 updateStep();
 syncPreview1();
 syncCommon();
 </script>
+<!-- 구매 안내 모달 -->
+<div id="buyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:16px;padding:28px 24px;max-width:400px;width:100%;text-align:center">
+    <div style="font-size:36px;margin-bottom:12px">🎉</div>
+    <div style="font-size:18px;font-weight:700;color:#e8e8e8;margin-bottom:8px">무료 체험이 끝났어요</div>
+    <div style="font-size:13px;color:#a0a0a0;margin-bottom:20px;line-height:1.6">
+      5회 무료 사용이 완료되었습니다.<br>
+      계속 사용하시려면 프로그램을 구매해주세요.
+    </div>
+    <div style="background:#111;border:1px solid #2878cc;border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="font-size:26px;font-weight:900;color:#4a9aee;margin-bottom:4px">₩ 50,000</div>
+      <div style="font-size:11px;color:#606060">1회 구매 · 영구 사용</div>
+    </div>
+    <div style="background:#111;border-radius:10px;padding:14px;margin-bottom:16px;text-align:left">
+      <div style="font-size:12px;color:#a0a0a0;margin-bottom:8px;font-weight:600">📌 구매 방법</div>
+      <div style="font-size:12px;color:#e8e8e8;line-height:2">
+        <span style="color:#606060">입금 계좌</span><br>
+        <strong>농협 010-5469-0568-09 (김기석)</strong><br>
+        <span style="color:#606060;font-size:11px">* 입금자명에 연락처 기재</span>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;color:#a0a0a0;margin-bottom:6px;text-align:left">📧 입금 후 이메일로 연락주세요</div>
+      <input id="buyEmail" type="email" placeholder="이메일 주소를 입력하세요"
+        style="width:100%;height:42px;background:#222;border:1px solid #3a3a3a;border-radius:8px;padding:0 12px;font-size:14px;color:#e8e8e8;box-sizing:border-box;outline:none">
+      <div style="font-size:10px;color:#606060;margin-top:4px;text-align:left">입금 확인 후 정품 파일을 이메일로 발송해드립니다</div>
+    </div>
+    <button onclick="submitBuyRequest()" style="width:100%;height:48px;background:#2878cc;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px">
+      구매 신청하기
+    </button>
+    <button onclick="closeBuyModal()" style="width:100%;height:40px;background:transparent;color:#606060;border:1px solid #333;border-radius:10px;font-size:13px;cursor:pointer">
+      나중에 하기
+    </button>
+    <div id="trialRemain" style="margin-top:12px;font-size:11px;color:#606060"></div>
+  </div>
+</div>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
