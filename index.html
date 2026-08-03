@@ -68,23 +68,22 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
 .sign-container {
   position: relative;
   width: 100%;
-  height: 80px;
   overflow: visible;
 }
 .ch-main {
-  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
   z-index: 2;
   font-weight: 900; line-height: 1; white-space: nowrap;
-  transition: color 0.3s, text-shadow 0.3s, left 0.15s;
-  font-size: clamp(22px, 8vw, 52px); letter-spacing: 2px;
+  transition: color 0.3s, text-shadow 0.3s, transform 0.15s;
+  font-size: clamp(18px, 5.5vw, 48px); letter-spacing: 2px;
 }
 .frame-bar {
   position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
-  height: 22px;
   border: 1.5px solid #999; border-radius: 2px; background: #d0d0d0;
   display: flex; align-items: center; justify-content: flex-start;
   padding: 0; z-index: 1; overflow: visible;
-  transition: background 0.3s, border-color 0.3s;
+  transition: background 0.3s, border-color 0.3s, height 0.2s;
 }
 .ch-sub { font-size: 11px; font-weight: 500; line-height: 1; white-space: nowrap; position: absolute; top: 50%; right: 10px; transform: translateY(-50%); transition: right 0.15s; }
 .preview-hint { font-size: 10px; color: #666; text-align: center; margin-top: 10px; width: 100%; }
@@ -220,10 +219,10 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
   <!-- 공통 미리보기 (모든 단계 고정) -->
   <div class="preview-wrap" id="commonPreview" style="padding:0;position:relative;overflow:hidden">
     <!-- 배경 건물 씬 -->
-    <div id="bgScene" style="width:100%;position:relative;overflow:hidden;min-height:160px">
+    <div id="bgScene" style="width:100%;position:relative;overflow:hidden;min-height:180px">
       <svg id="bgSvg" viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
       <!-- 간판 오버레이 — 코니스 바로 아래 상단 고정 -->
-      <div style="position:absolute;left:0;right:0;top:35px;padding:0 24px;z-index:5">
+      <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);padding:0 24px;z-index:5">
         <div class="sign-container" id="commonContainer" style="height:80px">
           <div class="frame-bar" id="cFrame">
             <span class="ch-sub" id="cSub">000-0000</span>
@@ -412,24 +411,46 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
 
         <!-- 크기 프리셋 -->
         <div class="fl">간판 크기</div>
-        <div class="size-preset-row" id="sizePresets">
-          <div class="size-preset-btn on" onclick="setSizePreset(this,2000,300,80)">
+        <div class="size-preset-row" id="sizePresets" style="grid-template-columns:repeat(5,1fr)">
+          <div class="size-preset-btn on" onclick="setSizePreset(this,1500,250,200)">
+            <span class="sz-label">미니</span>
+            <span class="sz-sub">1500×250</span>
+          </div>
+          <div class="size-preset-btn" onclick="setSizePreset(this,2000,300,200)">
             <span class="sz-label">소형</span>
-            <span class="sz-sub">2000×300mm</span>
+            <span class="sz-sub">2000×300</span>
           </div>
-          <div class="size-preset-btn" onclick="setSizePreset(this,3000,400,100)">
+          <div class="size-preset-btn" onclick="setSizePreset(this,3000,400,200)">
             <span class="sz-label">중형</span>
-            <span class="sz-sub">3000×400mm</span>
+            <span class="sz-sub">3000×400</span>
           </div>
-          <div class="size-preset-btn" onclick="setSizePreset(this,4000,500,120)">
+          <div class="size-preset-btn" onclick="setSizePreset(this,4000,500,200)">
             <span class="sz-label">대형</span>
-            <span class="sz-sub">4000×500mm</span>
+            <span class="sz-sub">4000×500</span>
+          </div>
+          <div class="size-preset-btn" onclick="setSizePreset(this,5000,600,300)">
+            <span class="sz-label">특대</span>
+            <span class="sz-sub">5000×600</span>
+          </div>
+        </div>
+        <!-- 미리보기 크기 슬라이더 -->
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;color:var(--text2)">미리보기 크기 조절</span>
+            <span id="previewSizeVal" style="font-size:12px;color:var(--blue-mid);font-weight:600">100%</span>
+          </div>
+          <input type="range" min="40" max="160" value="100" step="5" id="previewSizeSlider"
+            style="width:100%;accent-color:var(--blue-mid)"
+            oninput="setPreviewScale(this.value)">
+          <div style="display:flex;justify-content:space-between;margin-top:2px">
+            <span style="font-size:10px;color:var(--text3)">작게</span>
+            <span style="font-size:10px;color:var(--text3)">크게</span>
           </div>
         </div>
         <!-- 직접 입력 -->
         <div class="size-custom-row" style="margin-top:10px">
           <div class="size-input-wrap">
-            <label>가로 (mm)</label>
+            <label>채널 가로 (mm) <span style="font-size:10px;color:var(--text3)">글자 면적</span></label>
             <input class="fi" id="sizeW" type="number" value="2000" placeholder="2000" oninput="clearSizePreset()">
           </div>
           <div class="size-input-wrap">
@@ -439,14 +460,24 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
         </div>
         <div class="size-input-wrap" style="margin-top:8px">
           <label>프레임 세로 (mm)</label>
-          <input class="fi" id="frameH" type="number" value="80" placeholder="80" oninput="clearSizePreset()">
+          <input type="hidden" id="frameH" value="200">
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <div id="fh200" class="size-preset-btn on" style="flex:1;height:44px" onclick="setFrameH(200)">
+              <span class="sz-label">200mm</span>
+              <span class="sz-sub">일반형</span>
+            </div>
+            <div id="fh300" class="size-preset-btn" style="flex:1;height:44px" onclick="setFrameH(300)">
+              <span class="sz-label">300mm</span>
+              <span class="sz-sub">대형</span>
+            </div>
+          </div>
         <div class="size-custom-row" style="margin-top:8px">
           <div class="size-input-wrap">
-            <label>프레임 가로 (mm)</label>
-            <input class="fi" id="frameW" type="number" value="2000" placeholder="채널 가로와 동일" oninput="clearSizePreset()">
+            <label>프레임 가로 (mm) <span style="font-size:10px;color:var(--text3)">전체 폭</span></label>
+            <input class="fi" id="frameW" type="number" value="2000" placeholder="채널보다 크거나 같음" oninput="clearSizePreset()">
           </div>
           <div class="size-input-wrap">
-            <label style="color:var(--text3);font-size:10px">채널 가로 대비 비율</label>
+            <label style="color:var(--text3);font-size:10px">채널/프레임 비율</label>
             <div id="frameWRatio" style="height:42px;display:flex;align-items:center;font-size:18px;font-weight:700;color:var(--blue-mid)">100%</div>
           </div>
         </div>
@@ -562,8 +593,8 @@ var state = {
   subTextColor: '#333',
   sizeW: 2000,
   sizeH: 300,
-  frameH: 80,
-  frameW: 2000,
+  frameH: 200,
+  frameW: 2200,
   material: '아크릴 채널',
   install: '벽면 직접',
   qty: 1,
@@ -685,35 +716,37 @@ function syncCommon() {
   if (!cMain) return;
 
   // 크기 비율 미리보기 반영
-  var W  = state.sizeW  || 3000;
-  var H  = state.sizeH  || 400;
-  var FH = state.frameH || 100;
+  var W  = state.sizeW  || 3000;  // 채널 가로
+  var H  = state.sizeH  || 400;   // 채널 세로
+  var FH = state.frameH || 200;   // 프레임 세로 (200 or 300)
+  var FW = state.frameW || (W + 200); // 프레임 전체 가로
 
-  // 총 높이 = 채널H + 프레임FH
-  var totalH = H + FH;
+  var screenW = window.innerWidth || 480;
 
-  // 전체를 120px 안에 담음
-  var viewH = 100;
-  // 채널 영역 픽셀
-  var chPx  = Math.round(viewH * H / totalH);
-  // 프레임 영역 픽셀 (최소 8px)
-  var fPx   = Math.max(8, viewH - chPx);
+  // ── 세로: 채널H=400 → 80px 기준, 비율로 chPx 결정 ──
+  var chPx = Math.round(Math.max(30, Math.min(120, 80 * H / 400)));
+  // 프레임 픽셀 = chPx × (FH/H) 정확한 비율
+  var fPx  = Math.max(3, Math.round(chPx * FH / H));
 
-  // 컨테이너 = 채널+프레임 합산
-  if (container) container.style.height = (chPx + fPx) + 'px';
+  // 컨테이너 높이는 폰트 계산 후 설정
   // 프레임 바 높이
   if (cFrame) cFrame.style.height = fPx + 'px';
-  // 프레임 가로 비율 적용
-  var FW = state.frameW || state.sizeW || W;
-  var frameWRatio = Math.min(1, FW / (state.sizeW || FW));
-  if (cFrame) cFrame.style.width = Math.round(frameWRatio * 100) + '%';
+
+  // ── 가로: 전화번호 800mm 제외한 텍스트 비율 ──
+  if (cFrame) cFrame.style.width = '100%';
   if (cFrame) cFrame.style.right = 'auto';
+  var subText = state.bizSub || '';
+  var subW_mm = subText.length > 0 ? 800 : 0;
+  var textW_mm = Math.max(FW * 0.4, FW - subW_mm);
+  var textRatio = textW_mm / FW;
+
   // 비율 표시
   var ratioEl = document.getElementById('frameWRatio');
-  if (ratioEl) ratioEl.textContent = Math.round(frameWRatio * 100) + '%';
-  // 메인 폰트: 채널 픽셀의 70% (최소 18, 최대 72)
-  var fs = Math.round(Math.max(16, Math.min(56, chPx * 0.60)));
-  cMain.style.fontSize = fs + 'px';
+  if (ratioEl) ratioEl.textContent = Math.round(W / FW * 100) + '%';
+
+  // ── 폰트 크기 ──
+  var maxFont = screenW >= 480 ? 60 : 48;
+  var fs = Math.round(Math.max(10, Math.min(maxFont, chPx * 0.75 * textRatio)));
 
   // 업체명 텍스트 — | 구분자로 분할
   var cMain1 = document.getElementById('cMain1');
@@ -733,13 +766,29 @@ function syncCommon() {
   cFrame.style.borderColor = state.frameBorder;
   cSub.style.color      = state.subTextColor;
   cSub.style.textShadow = 'none';
-  cMain.style.left      = state.mainPos + 'px';
-  cMain.style.transform = 'translateY(calc(-50% + ' + (state.mainPosY || 0) + 'px))';
+  cMain.style.left      = '50%';
+  cMain.style.transform = 'translate(calc(-50% + ' + (state.mainPos || 0) + 'px), calc(-50% + ' + (state.mainPosY || 0) + 'px))';
   cSub.style.right      = (8 - state.subPos) + 'px';
   cSub.style.top        = 'calc(50% + ' + (state.subPosY || 0) + 'px)';
   cSub.style.transform  = 'translateY(-50%)';
 
+  // 폰트 크기 및 세로 위치: 1~2단계는 아직 실제 크기 미입력(3단계에서 입력) 상태이므로
+  // 항상 "크게 + 정중앙 고정" 렌더링, 3단계부터 실측(chPx 기반) 축소 비율 적용
+  if (state.step <= 2) {
+    var bigFont = Math.min(52, Math.max(24, Math.round((window.innerWidth || 480) * 0.10)));
+    cMain.style.fontSize = bigFont + 'px';
+    var bigH = bigFont + 20;
+    if (container) container.style.height = bigH + 'px';
+    if (cFrame) cFrame.style.height = '22px';
+    cMain.style.top = '50%';
+  } else {
+    cMain.style.fontSize = fs + 'px';
+    if (container) container.style.height = (chPx + fPx) + 'px';
+    cMain.style.top = (chPx / 2) + 'px';
+  }
+
   if (state.step === 1) {
+    // 1단계: 조명 효과 없이 기본색만
     [cMain1, cMain2].forEach(function(el, i){
       el.style.color = (state.splitColorOn && i === 1) ? state.textColor2 : state.textColor;
       el.style.textShadow = 'none';
@@ -891,14 +940,37 @@ function renderP2() {
 }
 
 // ===== 3단계 =====
+// 미리보기 크기 슬라이더
+function setPreviewScale(val) {
+  var pct = parseInt(val);
+  document.getElementById('previewSizeVal').textContent = pct + '%';
+  var scale = pct / 100;
+  var scene = document.getElementById('bgScene');
+  if (scene) {
+    scene.style.transform = 'scale(' + scale + ')';
+    scene.style.transformOrigin = 'top center';
+    scene.style.marginBottom = Math.round((scale - 1) * scene.offsetHeight) + 'px';
+  }
+}
 function setSizePreset(el, w, h, fh) {
   document.querySelectorAll('#sizePresets .size-preset-btn').forEach(function(b){ b.classList.remove('on'); });
   el.classList.add('on');
+  // 채널 가로 = 입력값, 프레임 가로 = 채널보다 200mm 크게 (현장 기준)
+  var fw = w + 200;
   document.getElementById('sizeW').value = w;
   document.getElementById('sizeH').value = h;
   document.getElementById('frameH').value = fh;
-  document.getElementById('frameW').value = w;
-  state.sizeW = w; state.sizeH = h; state.frameH = fh; state.frameW = w;
+  document.getElementById('fh200').classList.toggle('on', fh === 200);
+  document.getElementById('fh300').classList.toggle('on', fh === 300);
+  document.getElementById('frameW').value = fw;
+  state.sizeW = w; state.sizeH = h; state.frameH = fh; state.frameW = fw;
+  syncCommon();
+}
+function setFrameH(val) {
+  document.getElementById('frameH').value = val;
+  state.frameH = val;
+  document.getElementById('fh200').classList.toggle('on', val === 200);
+  document.getElementById('fh300').classList.toggle('on', val === 300);
   syncCommon();
 }
 function clearSizePreset() {
