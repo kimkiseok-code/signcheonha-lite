@@ -659,10 +659,15 @@ function updateStep() {
   // 남은 무료 횟수 뱃지
   var badge = document.getElementById('trialBadge');
   if (badge) {
-    var used = getTrialCount();
-    var left = Math.max(0, TRIAL_MAX - used);
-    badge.textContent = left > 0 ? '무료 ' + left + '회 남음' : '체험 종료';
-    badge.style.color = left <= 1 ? '#ef4444' : '#606060';
+    if (isAdminUnlocked()) {
+      badge.textContent = '관리자 모드';
+      badge.style.color = '#4a9aee';
+    } else {
+      var used = getTrialCount();
+      var left = Math.max(0, TRIAL_MAX - used);
+      badge.textContent = left > 0 ? '무료 ' + left + '회 남음' : '체험 종료';
+      badge.style.color = left <= 1 ? '#ef4444' : '#606060';
+    }
   }
 }
 
@@ -1316,16 +1321,30 @@ function doCapture(el) {
 // ===== 무료 체험 관리 =====
 var TRIAL_KEY = 'scl_trial_count';
 var TRIAL_MAX = 5;
+var ADMIN_KEY  = 'scl_admin_unlock';
+var ADMIN_CODE = '1961';
+
+(function checkAdminKey() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('key') === ADMIN_CODE) {
+    localStorage.setItem(ADMIN_KEY, '1');
+  }
+})();
+function isAdminUnlocked() {
+  return localStorage.getItem(ADMIN_KEY) === '1';
+}
 
 function getTrialCount() {
   return parseInt(localStorage.getItem(TRIAL_KEY) || '0');
 }
 function incrementTrial() {
+  if (isAdminUnlocked()) return 0;
   var cnt = getTrialCount() + 1;
   localStorage.setItem(TRIAL_KEY, cnt);
   return cnt;
 }
 function checkTrial() {
+  if (isAdminUnlocked()) return true;
   var cnt = getTrialCount();
   return cnt < TRIAL_MAX;
 }
