@@ -784,6 +784,12 @@ function syncCommon() {
   // → 0.75 배율이나 화면폭 기반의 과한 축소 없이, chPx를 거의 그대로 사용.
   var nameLen = Math.max(1, rawName.replace(/\|/g, '').length);
   var usablePx = Math.max(60, screenW - 56); // 좌우 여백 대략 28px씩 제외 (가로 넘침 방지용)
+  // 부제목(전화번호 등)이 있으면, 업체명이 가운데 정렬이라 오른쪽으로도 넓어지므로
+  // 부제목 자리를 좌우 대칭으로 두 배 비워둬야 실제로 겹치지 않음
+  if (subText.length > 0) {
+    var subPxWidth = measureNamePx(subText, 11, state.fontFamily) + 20; // 부제목 폭 + 여백
+    usablePx = Math.max(60, usablePx - subPxWidth * 2);
+  }
   var cleanName = rawName.replace(/\|/g, '');
   var refSize = 100;
   var measuredAtRef = measureNamePx(cleanName, refSize, state.fontFamily);
