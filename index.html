@@ -745,7 +745,7 @@ function syncCommon() {
   // 프레임 바 높이
   if (cFrame) cFrame.style.height = fPx + 'px';
 
-  // ── 가로: 전화번호 800mm 제외한 텍스트 비율 ──
+  // ── 가로: 전화번호 800mm 제외한 텍스트 비율 (프레임 안 문구 폭 비율 표시용) ──
   if (cFrame) cFrame.style.width = '100%';
   if (cFrame) cFrame.style.right = 'auto';
   var subText = state.bizSub || '';
@@ -756,10 +756,6 @@ function syncCommon() {
   // 비율 표시
   var ratioEl = document.getElementById('frameWRatio');
   if (ratioEl) ratioEl.textContent = Math.round(W / FW * 100) + '%';
-
-  // ── 폰트 크기 ──
-  var maxFont = screenW >= 480 ? 60 : 48;
-  var fs = Math.round(Math.max(10, Math.min(maxFont, chPx * 0.75 * textRatio)));
 
   // 업체명 텍스트 — | 구분자로 분할
   var cMain1 = document.getElementById('cMain1');
@@ -773,6 +769,17 @@ function syncCommon() {
     cMain1.textContent = rawName.replace(/\|/g, '');
     cMain2.textContent = '';
   }
+
+  // ── 폰트 크기 ──
+  // 세로(chPx) 기준으로만 산정 (43번 구버전 방식: textRatio 곱하지 않음 —
+  // 이걸 곱하면 전화번호 유무/프레임 가로비율 때문에 세로 채널 영역 안이 텅 비어 보이는
+  // "붕 뜬" 현상이 생김). 대신 업체명이 아주 길 때만 가로 넘침 방지용으로 별도 캡을 둠.
+  var maxFont = screenW >= 480 ? 60 : 48;
+  var fsFromHeight = chPx * 0.75;
+  var nameLen = Math.max(1, rawName.replace(/\|/g, '').length);
+  var usablePx = Math.max(60, screenW - 48); // 좌우 여백 대략 24px씩 제외
+  var fsFromWidth = usablePx / (nameLen * 0.62); // 글자당 대략 0.62em 폭 가정(볼드 한글 기준)
+  var fs = Math.round(Math.max(10, Math.min(maxFont, fsFromHeight, fsFromWidth)));
 
   cSub.textContent  = state.bizSub;
   cFrame.style.background  = state.frameBg;
