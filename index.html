@@ -1258,9 +1258,27 @@ var quoteItems = [];
 function initQuoteItems(prod, elec, inst) {
   // 글자 수 기반 채널 수량 계산
   var nameLen = (state.bizName || '').replace(/\|/g, '').length || 1;
-  var unitPrice = nameLen > 0 ? Math.round(100000 / nameLen) * nameLen > 0 ? 100000 : 100000 : 100000;
+
+  // LED모듈(BAR3구) 개수 계산 — ledtrans.exe 실측표 기반
+  // 보통서체: 글자당 모듈수 ≈ S(cm)² × 0.0067,  굵은서체: ≈ S(cm)² × 0.01
+  // → 두 서체 평균 ≈ S² × 0.00835 (100cm 기준 보통67/굵은100 평균 83.5와 정확히 일치)
+  // S(글자 한 변, cm) = 채널 세로(mm)/10 로 근사 (정사각형 글자 기준)
+  var S_cm = (state.sizeH || 300) / 10;
+  var avgModulesPerChar = S_cm * S_cm * 0.00835;
+  var totalModules = Math.max(1, Math.round(avgModulesPerChar * nameLen));
+
+  // SMPS 개수 계산 — 표준 용량(150/200/250/300/400W)의 80%까지를 모듈 허용치로 봄
+  // (예: 400W → 모듈 320개까지). 그 이상이면 400W 여러 대로 분할.
+  var smpsTiers = [150, 200, 250, 300, 400];
+  var fitTier = smpsTiers.find(function(t){ return totalModules <= t * 0.8; });
+  var smpsWatt, smpsQty;
+  if (fitTier) { smpsWatt = fitTier; smpsQty = 1; }
+  else { smpsWatt = 400; smpsQty = Math.ceil(totalModules / (400 * 0.8)); }
+
   quoteItems = [
     { label:'채널 제작', qty: nameLen, amount: 100000 },
+    { label:'LED모듈(BAR3구·평균)', qty: totalModules, amount: 0 },
+    { label:'SMPS ' + smpsWatt + 'W', qty: smpsQty, amount: 0 },
     { label:'조명·배선 인건비', qty: 1, amount: 150000 },
     { label:'설치 시공', qty: 1, amount: 150000 },
     { label:'장비(스카이)', qty: 1, amount: 0 }
