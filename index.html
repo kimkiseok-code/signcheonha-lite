@@ -807,9 +807,8 @@ function syncCommon() {
     cMain.style.fontSize = fs + 'px';
     if (container) container.style.height = (chPx + fPx) + 'px';
     // 메인텍스트 세로 위치: "프레임과 절대 안 겹치는 한도 내에서, 전체 박스 정중앙에 최대한 가깝게"
-    // - 전체 박스 정중앙(idealCenter)을 목표로 하되
-    // - 프레임 시작선(chPx)에서 최소 여백(margin)을 반드시 확보하는 한계(maxSafeCenter)를 넘지 않도록 clamp
-    // → 프레임이 얇으면 진짜 정중앙에 가깝게, 프레임이 두꺼우면 자동으로 안전한 위치로 조정됨
+    // (정중앙을 강제로 지키려고 폰트를 줄이는 방식도 시도했으나, 일반적인 크기(2000x300/frame200)에서
+    //  글자가 12px까지 쪼그라드는 부작용이 있어 폐기 — 위치 타협이 훨씬 안전한 절충안)
     var margin = 6;
     var idealCenter = (chPx + fPx) / 2;
     var maxSafeCenter = chPx - fs / 2 - margin;
