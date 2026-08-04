@@ -732,10 +732,14 @@ function syncCommon() {
   var previewEl = document.getElementById('commonPreview');
   var screenW = (previewEl && previewEl.clientWidth) ? previewEl.clientWidth : (window.innerWidth || 480);
 
-  // ── 세로: 채널H=400 → 80px 기준, 비율로 chPx 결정 ──
-  var chPx = Math.round(Math.max(30, Math.min(120, 80 * H / 400)));
-  // 프레임 픽셀 = chPx × (FH/H) 정확한 비율
-  var fPx  = Math.max(3, Math.round(chPx * FH / H));
+  // ── 세로: 43번 구버전 방식 채택 — 채널+프레임을 "고정 120px 예산" 안에서
+  // 실제 mm 비율(H:FH)대로 나눠 담음. mm 절대값을 그대로 px로 환산하지 않기 때문에
+  // 채널이 아무리 크거나 프레임이 아무리 얇아도 박스 크기 자체가 항상 안정적으로 나오고,
+  // 예전처럼 메인텍스트가 위쪽에 붕 떠 보이는 현상이 없음.
+  var totalH = H + FH;
+  var viewH = 120;
+  var chPx = Math.round(viewH * H / totalH);
+  var fPx  = Math.max(8, viewH - chPx);
 
   // 컨테이너 높이는 폰트 계산 후 설정
   // 프레임 바 높이
