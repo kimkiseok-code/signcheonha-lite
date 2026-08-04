@@ -712,6 +712,18 @@ function syncPreview1() {
   state.bizSub  = document.getElementById('bizSub').value || '';
   syncCommon();
 }
+// canvas로 실제 렌더링될 텍스트 폭을 정확히 측정 (letter-spacing:2px, font-weight:900 반영)
+function measureNamePx(text, fontSizePx, fontFamily) {
+  if (!text) return 0;
+  if (!measureNamePx._ctx) {
+    measureNamePx._ctx = document.createElement('canvas').getContext('2d');
+  }
+  var ctx = measureNamePx._ctx;
+  ctx.font = '900 ' + fontSizePx + 'px "' + fontFamily + '", sans-serif';
+  var w = ctx.measureText(text).width;
+  w += Math.max(0, text.length - 1) * 2; // CSS letter-spacing: 2px
+  return w;
+}
 function syncCommon() {
   var cMain  = document.getElementById('cMain');
   var cSub   = document.getElementById('cSub');
@@ -771,8 +783,11 @@ function syncCommon() {
   // 상하 여백이 실제 mm 비율(예: 채널500mm/프레임300mm→상하 100mm씩)대로 보임.
   // → 0.75 배율이나 화면폭 기반의 과한 축소 없이, chPx를 거의 그대로 사용.
   var nameLen = Math.max(1, rawName.replace(/\|/g, '').length);
-  var usablePx = Math.max(60, screenW - 56); // 좌우 여백 대략 28px씩 제외 (가로 넘침 방지용 캡)
-  var fsFromWidth = usablePx / (nameLen * 1.05); // 글자당 실측 약 1.0em 폭(볼드 한글 + letter-spacing 포함) + 여유
+  var usablePx = Math.max(60, screenW - 56); // 좌우 여백 대략 28px씩 제외 (가로 넘침 방지용)
+  var cleanName = rawName.replace(/\|/g, '');
+  var refSize = 100;
+  var measuredAtRef = measureNamePx(cleanName, refSize, state.fontFamily);
+  var fsFromWidth = measuredAtRef > 0 ? (usablePx * refSize / measuredAtRef) : chPx;
   var fs = Math.round(Math.max(10, Math.min(chPx, fsFromWidth)));
   // 가로 폭 제한 때문에 fs가 chPx보다 작아졌다면, 프레임(fPx)도 같은 비율로 축소해야
   // 실제 mm 비율(상하 여백)이 그대로 유지됨 — 텍스트만 줄고 프레임은 그대로면 비율이 깨짐.
@@ -792,31 +807,21 @@ function syncCommon() {
   cSub.style.right      = (8 - state.subPos) + 'px';
   cSub.style.transform  = 'translateY(-50%)';
 
-  // 폰트 크기 및 세로 위치: 1~2단계는 아직 실제 크기 미입력(3단계에서 입력) 상태이므로
-  // 항상 "크게 + 정중앙 고정" 렌더링, 3단계부터 실측(chPx 기반) 축소 비율 적용
-  if (state.step <= 2) {
-    var bigFont = Math.min(52, Math.max(24, Math.round(screenW * 0.10)));
-    cMain.style.fontSize = bigFont + 'px';
-    var bigH = bigFont + 20;
-    if (container) container.style.height = bigH + 'px';
-    if (cFrame) cFrame.style.height = '22px';
-    cMain.style.top = '50%';
-    if (cFrame) cFrame.style.top = '50%'; // 1~2단계: 컨테이너 정중앙 (CSS 기본값과 동일)
-    // 1~2단계에서는 사용자가 위치조절 슬라이더로 준 오프셋을 그대로 반영 (정밀 조정용 미리보기)
-    cSub.style.top = 'calc(50% + ' + (state.subPosY || 0) + 'px)';
-  } else {
-    cMain.style.fontSize = fs + 'px';
-    if (cFrame) cFrame.style.height = fPx + 'px'; // 가로폭 보정이 반영된 최종 fPx 사용
-    // 텍스트(채널)가 프레임 위에 겹쳐서 중앙 정렬되는 구조이므로,
-    // 필요한 전체 세로 공간은 "둘 중 더 큰 쪽"(보통 채널 chPx)이 기준.
-    var totalVisualH = Math.max(chPx, fPx);
-    if (container) container.style.height = totalVisualH + 'px';
-    // 메인텍스트(업체명)와 프레임 모두 이 박스의 정중앙(같은 중심점)에 위치
-    // → 채널이 프레임보다 크면 상하로 정확히 같은 비율만큼 자연스럽게 삐져나옴
-    cMain.style.top = '50%';
-    if (cFrame) cFrame.style.top = '50%';
-    cSub.style.top = '50%';
-  }
+  // 폰트 크기 및 세로 위치: 1~4단계 전부 동일한 실측(chPx/fPx 기반) 계산 사용.
+  // (예전엔 1~2단계만 "크기 모름" 가정하고 고정된 22px 프레임 미리보기를 썼는데,
+  //  기본값(2000x300mm)이 이미 있어서 처음부터 실측을 써도 문제없고,
+  //  단계를 왔다갔다 해도 항상 같은 걸 보게 되어 훨씬 일관됨)
+  cMain.style.fontSize = fs + 'px';
+  if (cFrame) cFrame.style.height = fPx + 'px'; // 가로폭 보정이 반영된 최종 fPx 사용
+  // 텍스트(채널)가 프레임 위에 겹쳐서 중앙 정렬되는 구조이므로,
+  // 필요한 전체 세로 공간은 "둘 중 더 큰 쪽"(보통 채널 chPx)이 기준.
+  var totalVisualH = Math.max(chPx, fPx);
+  if (container) container.style.height = totalVisualH + 'px';
+  // 메인텍스트(업체명)와 프레임 모두 이 박스의 정중앙(같은 중심점)에 위치
+  // → 채널이 프레임보다 크면 상하로 정확히 같은 비율만큼 자연스럽게 삐져나옴
+  cMain.style.top = '50%';
+  if (cFrame) cFrame.style.top = '50%';
+  cSub.style.top = 'calc(50% + ' + (state.subPosY || 0) + 'px)';
 
   if (state.step === 1) {
     // 1단계: 조명 효과 없이 기본색만
