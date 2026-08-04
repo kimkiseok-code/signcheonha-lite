@@ -741,10 +741,6 @@ function syncCommon() {
   var chPx = Math.round(Math.max(30, Math.min(120, 80 * H / 400)));
   var fPx  = Math.max(8, Math.round(chPx * FH / H));
 
-  // 컨테이너 높이는 폰트 계산 후 설정
-  // 프레임 바 높이
-  if (cFrame) cFrame.style.height = fPx + 'px';
-
   // ── 가로: 전화번호 800mm 제외한 텍스트 비율 (프레임 안 문구 폭 비율 표시용) ──
   if (cFrame) cFrame.style.width = '100%';
   if (cFrame) cFrame.style.right = 'auto';
@@ -778,6 +774,13 @@ function syncCommon() {
   var usablePx = Math.max(60, screenW - 56); // 좌우 여백 대략 28px씩 제외 (가로 넘침 방지용 캡)
   var fsFromWidth = usablePx / (nameLen * 1.05); // 글자당 실측 약 1.0em 폭(볼드 한글 + letter-spacing 포함) + 여유
   var fs = Math.round(Math.max(10, Math.min(chPx, fsFromWidth)));
+  // 가로 폭 제한 때문에 fs가 chPx보다 작아졌다면, 프레임(fPx)도 같은 비율로 축소해야
+  // 실제 mm 비율(상하 여백)이 그대로 유지됨 — 텍스트만 줄고 프레임은 그대로면 비율이 깨짐.
+  if (fs < chPx) {
+    var shrinkScale = fs / chPx;
+    fPx = Math.max(6, fPx * shrinkScale);
+    chPx = fs;
+  }
 
   cSub.textContent  = state.bizSub;
   cFrame.style.background  = state.frameBg;
@@ -803,6 +806,7 @@ function syncCommon() {
     cSub.style.top = 'calc(50% + ' + (state.subPosY || 0) + 'px)';
   } else {
     cMain.style.fontSize = fs + 'px';
+    if (cFrame) cFrame.style.height = fPx + 'px'; // 가로폭 보정이 반영된 최종 fPx 사용
     // 텍스트(채널)가 프레임 위에 겹쳐서 중앙 정렬되는 구조이므로,
     // 필요한 전체 세로 공간은 "둘 중 더 큰 쪽"(보통 채널 chPx)이 기준.
     var totalVisualH = Math.max(chPx, fPx);
