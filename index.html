@@ -721,7 +721,11 @@ function syncCommon() {
   var FH = state.frameH || 200;   // 프레임 세로 (200 or 300)
   var FW = state.frameW || (W + 200); // 프레임 전체 가로
 
-  var screenW = window.innerWidth || 480;
+  // window.innerWidth는 단계별 페이지 길이에 따라 스크롤바 유무가 달라지면서 값이 흔들려
+  // 같은 상태값인데도 3단계/4단계 미리보기 크기가 서로 다르게 나오는 원인이 됨.
+  // 미리보기 박스 자체의 실제 렌더링 너비를 기준으로 삼아 항상 동일하게 계산되도록 함.
+  var previewEl = document.getElementById('commonPreview');
+  var screenW = (previewEl && previewEl.clientWidth) ? previewEl.clientWidth : (window.innerWidth || 480);
 
   // ── 세로: 채널H=400 → 80px 기준, 비율로 chPx 결정 ──
   var chPx = Math.round(Math.max(30, Math.min(120, 80 * H / 400)));
@@ -774,7 +778,7 @@ function syncCommon() {
   // 폰트 크기 및 세로 위치: 1~2단계는 아직 실제 크기 미입력(3단계에서 입력) 상태이므로
   // 항상 "크게 + 정중앙 고정" 렌더링, 3단계부터 실측(chPx 기반) 축소 비율 적용
   if (state.step <= 2) {
-    var bigFont = Math.min(52, Math.max(24, Math.round((window.innerWidth || 480) * 0.10)));
+    var bigFont = Math.min(52, Math.max(24, Math.round(screenW * 0.10)));
     cMain.style.fontSize = bigFont + 'px';
     var bigH = bigFont + 20;
     if (container) container.style.height = bigH + 'px';
@@ -786,6 +790,9 @@ function syncCommon() {
   } else {
     cMain.style.fontSize = fs + 'px';
     if (container) container.style.height = (chPx + fPx) + 'px';
+    // 메인텍스트는 채널 영역(chPx) 중앙에 위치 — 이 공식은 fs <= chPx*0.75 이므로
+    // 어떤 크기/프레임 비율 조합에서도 프레임과 절대 겹치지 않음이 수학적으로 보장됨
+    // (컨테이너 전체 기준 50% 중앙은 프레임이 두꺼울수록 겹침 위험 있어 사용 안 함)
     cMain.style.top = (chPx / 2) + 'px';
     // 프레임은 컨테이너 정중앙이 아니라 "채널 영역(chPx) 바로 아래" 자체 구역(fPx) 중앙에 고정
     // → 메인텍스트(채널 영역 중앙)와 항상 정확히 분리되어 크기 비율이 어떻든 겹치지 않음
