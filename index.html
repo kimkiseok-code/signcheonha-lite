@@ -474,7 +474,7 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
         <div class="size-custom-row" style="margin-top:8px">
           <div class="size-input-wrap">
             <label>프레임 가로 (mm) <span style="font-size:10px;color:var(--text3)">전체 폭</span></label>
-            <input class="fi" id="frameW" type="number" value="2000" placeholder="채널보다 크거나 같음" oninput="clearSizePreset()">
+            <input class="fi" id="frameW" type="number" value="3500" placeholder="채널보다 크거나 같음" oninput="clearSizePreset()">
           </div>
           <div class="size-input-wrap">
             <label style="color:var(--text3);font-size:10px">채널/프레임 비율</label>
@@ -594,7 +594,7 @@ var state = {
   sizeW: 2000,
   sizeH: 300,
   frameH: 200,
-  frameW: 2200,
+  frameW: 3500,
   material: '아크릴 채널',
   install: '벽면 직접',
   qty: 1,
@@ -736,7 +736,7 @@ function syncCommon() {
   var W  = state.sizeW  || 3000;  // 채널 가로
   var H  = state.sizeH  || 400;   // 채널 세로
   var FH = state.frameH || 200;   // 프레임 세로 (200 or 300)
-  var FW = state.frameW || (W + 200); // 프레임 전체 가로
+  var FW = state.frameW || Math.round(W * 1.75); // 프레임 전체 가로
 
   // window.innerWidth는 단계별 페이지 길이에 따라 스크롤바 유무가 달라지면서 값이 흔들려
   // 같은 상태값인데도 3단계/4단계 미리보기 크기가 서로 다르게 나오는 원인이 됨.
@@ -997,8 +997,8 @@ function setPreviewScale(val) {
 function setSizePreset(el, w, h, fh) {
   document.querySelectorAll('#sizePresets .size-preset-btn').forEach(function(b){ b.classList.remove('on'); });
   el.classList.add('on');
-  // 채널 가로 = 입력값, 프레임 가로 = 채널보다 200mm 크게 (현장 기준)
-  var fw = w + 200;
+  // 채널 가로 = 입력값, 프레임 가로 = 채널의 1.75배 (앞쪽 여백 + 전화번호 자리 확보, 2000→3500 비율 기준)
+  var fw = Math.round(w * 1.75);
   document.getElementById('sizeW').value = w;
   document.getElementById('sizeH').value = h;
   document.getElementById('frameH').value = fh;
