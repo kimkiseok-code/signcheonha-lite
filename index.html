@@ -806,10 +806,15 @@ function syncCommon() {
   } else {
     cMain.style.fontSize = fs + 'px';
     if (container) container.style.height = (chPx + fPx) + 'px';
-    // 메인텍스트는 채널 영역(chPx) 중앙에 위치 — 이 공식은 fs <= chPx*0.75 이므로
-    // 어떤 크기/프레임 비율 조합에서도 프레임과 절대 겹치지 않음이 수학적으로 보장됨
-    // (컨테이너 전체 기준 50% 중앙은 프레임이 두꺼울수록 겹침 위험 있어 사용 안 함)
-    cMain.style.top = (chPx / 2) + 'px';
+    // 메인텍스트 세로 위치: "프레임과 절대 안 겹치는 한도 내에서, 전체 박스 정중앙에 최대한 가깝게"
+    // - 전체 박스 정중앙(idealCenter)을 목표로 하되
+    // - 프레임 시작선(chPx)에서 최소 여백(margin)을 반드시 확보하는 한계(maxSafeCenter)를 넘지 않도록 clamp
+    // → 프레임이 얇으면 진짜 정중앙에 가깝게, 프레임이 두꺼우면 자동으로 안전한 위치로 조정됨
+    var margin = 6;
+    var idealCenter = (chPx + fPx) / 2;
+    var maxSafeCenter = chPx - fs / 2 - margin;
+    var mainCenter = Math.min(idealCenter, Math.max(fs / 2, maxSafeCenter));
+    cMain.style.top = mainCenter + 'px';
     // 프레임은 컨테이너 정중앙이 아니라 "채널 영역(chPx) 바로 아래" 자체 구역(fPx) 중앙에 고정
     // → 메인텍스트(채널 영역 중앙)와 항상 정확히 분리되어 크기 비율이 어떻든 겹치지 않음
     if (cFrame) cFrame.style.top = (chPx + fPx / 2) + 'px';
