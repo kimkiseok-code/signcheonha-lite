@@ -732,14 +732,14 @@ function syncCommon() {
   var previewEl = document.getElementById('commonPreview');
   var screenW = (previewEl && previewEl.clientWidth) ? previewEl.clientWidth : (window.innerWidth || 480);
 
-  // ── 세로: 43번 구버전 방식 채택 — 채널+프레임을 "고정 120px 예산" 안에서
-  // 실제 mm 비율(H:FH)대로 나눠 담음. mm 절대값을 그대로 px로 환산하지 않기 때문에
-  // 채널이 아무리 크거나 프레임이 아무리 얇아도 박스 크기 자체가 항상 안정적으로 나오고,
-  // 예전처럼 메인텍스트가 위쪽에 붕 떠 보이는 현상이 없음.
-  var totalH = H + FH;
-  var viewH = 120;
-  var chPx = Math.round(viewH * H / totalH);
-  var fPx  = Math.max(8, viewH - chPx);
+  // ── 채널과 프레임을 완전히 같은 mm→px 축척으로 계산 ──
+  // 업체명(채널) 글자가 회색 프레임 위에 겹쳐서 중앙 정렬되는 구조이므로,
+  // 채널 높이와 프레임 높이는 "같은 배율"로 축소돼야 실제 물리적 비율
+  // (예: 채널500mm/프레임300mm → 상하 각 100mm씩 남음)이 화면에도 정확히 재현됨.
+  // (이전의 "고정 120px 예산을 나눠 담는" 방식은 채널/프레임을 서로 다른 배율로
+  //  찌그러뜨려서 실제 비율과 달라지는 문제가 있었음 — 폐기)
+  var chPx = Math.round(Math.max(30, Math.min(120, 80 * H / 400)));
+  var fPx  = Math.max(8, Math.round(chPx * FH / H));
 
   // 컨테이너 높이는 폰트 계산 후 설정
   // 프레임 바 높이
@@ -771,15 +771,13 @@ function syncCommon() {
   }
 
   // ── 폰트 크기 ──
-  // 세로(chPx) 기준으로만 산정 (43번 구버전 방식: textRatio 곱하지 않음 —
-  // 이걸 곱하면 전화번호 유무/프레임 가로비율 때문에 세로 채널 영역 안이 텅 비어 보이는
-  // "붕 뜬" 현상이 생김). 대신 업체명이 아주 길 때만 가로 넘침 방지용으로 별도 캡을 둠.
-  var maxFont = screenW >= 480 ? 60 : 48;
-  var fsFromHeight = chPx * 0.75;
+  // 텍스트 높이가 채널 실측 비율(chPx)과 최대한 일치해야, 프레임 위에 겹쳤을 때
+  // 상하 여백이 실제 mm 비율(예: 채널500mm/프레임300mm→상하 100mm씩)대로 보임.
+  // → 0.75 배율이나 화면폭 기반의 과한 축소 없이, chPx를 거의 그대로 사용.
   var nameLen = Math.max(1, rawName.replace(/\|/g, '').length);
-  var usablePx = Math.max(60, screenW - 48); // 좌우 여백 대략 24px씩 제외
-  var fsFromWidth = usablePx / (nameLen * 0.62); // 글자당 대략 0.62em 폭 가정(볼드 한글 기준)
-  var fs = Math.round(Math.max(10, Math.min(maxFont, fsFromHeight, fsFromWidth)));
+  var usablePx = Math.max(60, screenW - 56); // 좌우 여백 대략 28px씩 제외 (가로 넘침 방지용 캡)
+  var fsFromWidth = usablePx / (nameLen * 1.05); // 글자당 실측 약 1.0em 폭(볼드 한글 + letter-spacing 포함) + 여유
+  var fs = Math.round(Math.max(10, Math.min(chPx, fsFromWidth)));
 
   cSub.textContent  = state.bizSub;
   cFrame.style.background  = state.frameBg;
@@ -805,12 +803,14 @@ function syncCommon() {
     cSub.style.top = 'calc(50% + ' + (state.subPosY || 0) + 'px)';
   } else {
     cMain.style.fontSize = fs + 'px';
-    if (container) container.style.height = (chPx + fPx) + 'px';
-    // 메인텍스트(업체명)는 회색 프레임의 세로 중앙에 오도록 위치 — 프레임과 같은 중심점 사용.
-    // (채널 영역 위에 따로 띄우는 게 아니라, 프레임 자체 위에 업체명이 얹히는 실제 간판 구조를 반영)
-    var frameCenter = chPx + fPx / 2;
-    cMain.style.top = frameCenter + 'px';
-    if (cFrame) cFrame.style.top = frameCenter + 'px';
+    // 텍스트(채널)가 프레임 위에 겹쳐서 중앙 정렬되는 구조이므로,
+    // 필요한 전체 세로 공간은 "둘 중 더 큰 쪽"(보통 채널 chPx)이 기준.
+    var totalVisualH = Math.max(chPx, fPx);
+    if (container) container.style.height = totalVisualH + 'px';
+    // 메인텍스트(업체명)와 프레임 모두 이 박스의 정중앙(같은 중심점)에 위치
+    // → 채널이 프레임보다 크면 상하로 정확히 같은 비율만큼 자연스럽게 삐져나옴
+    cMain.style.top = '50%';
+    if (cFrame) cFrame.style.top = '50%';
     cSub.style.top = '50%';
   }
 
