@@ -352,18 +352,22 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
           </div>
         </div>
 
-        <div class="fl">글자색</div>
-        <div class="color-row" id="colorPicker">
-          <div class="color-item"><div class="cp" style="background:#111111" onclick="setTextColor(this,'#111111')"></div><span class="cp-name">검정</span></div>
-          <div class="color-item"><div class="cp sel" style="background:#ffffff;box-shadow:inset 0 0 0 1px #ccc" onclick="setTextColor(this,'#ffffff')"></div><span class="cp-name">흰색</span></div>
-          <div class="color-item"><div class="cp" style="background:#d4af37" onclick="setTextColor(this,'#d4af37')"></div><span class="cp-name">골드</span></div>
-          <div class="color-item"><div class="cp" style="background:#f97316" onclick="setTextColor(this,'#f97316')"></div><span class="cp-name">주황</span></div>
-          <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setTextColor(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
-          <div class="color-item"><div class="cp" style="background:#3b82f6" onclick="setTextColor(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
-          <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setTextColor(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text1)">
+            <input type="checkbox" id="showTextColor" onchange="toggleColorSection('textColor')" style="width:16px;height:16px;accent-color:var(--blue-mid)">
+            글자색
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text1)">
+            <input type="checkbox" id="showGlowColor" onchange="toggleColorSection('glowColor')" style="width:16px;height:16px;accent-color:var(--blue-mid)">
+            조명색
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text1)">
+            <input type="checkbox" id="showFrameColor" onchange="toggleColorSection('frameColor')" style="width:16px;height:16px;accent-color:var(--blue-mid)">
+            프레임 색상
+          </label>
         </div>
 
-        <div style="display:flex;align-items:center;gap:8px;margin-top:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2)">
             <input type="checkbox" id="splitColorToggle" onchange="toggleSplitColor()" style="width:16px;height:16px;accent-color:var(--blue-mid)">
             업체명 색상 구분 (업체명에 <code style="background:#222;padding:1px 5px;border-radius:4px;color:var(--text1)">|</code> 입력 시 앞/뒤 다른 색)
@@ -382,25 +386,42 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
           </div>
         </div>
 
-        <div class="fl">조명색</div>
-        <div class="color-row" id="glowPicker">
-          <div class="color-item"><div class="cp sel" style="background:#fdf4c8;box-shadow:inset 0 0 0 1px #e8d870" onclick="setGlowColor(this,'#fdf4c8')"></div><span class="cp-name">전구색</span></div>
-          <div class="color-item"><div class="cp" style="background:#ffffff;box-shadow:inset 0 0 0 1px #ccc" onclick="setGlowColor(this,'#ffffff')"></div><span class="cp-name">흰색</span></div>
-          <div class="color-item"><div class="cp" style="background:#d4af37" onclick="setGlowColor(this,'#d4af37')"></div><span class="cp-name">골드</span></div>
-          <div class="color-item"><div class="cp" style="background:#f97316" onclick="setGlowColor(this,'#f97316')"></div><span class="cp-name">주황</span></div>
-          <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setGlowColor(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
-          <div class="color-item"><div class="cp" style="background:#3b82f6" onclick="setGlowColor(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
-          <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setGlowColor(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
-          <div class="color-item"><div class="cp" style="background:#e879f9" onclick="setGlowColor(this,'#e879f9')"></div><span class="cp-name">보라</span></div>
+        <div id="textColorSection" style="display:none;margin-top:12px">
+          <div class="fl">글자색</div>
+          <div class="color-row" id="colorPicker">
+            <div class="color-item"><div class="cp" style="background:#111111" onclick="setTextColor(this,'#111111')"></div><span class="cp-name">검정</span></div>
+            <div class="color-item"><div class="cp sel" style="background:#ffffff;box-shadow:inset 0 0 0 1px #ccc" onclick="setTextColor(this,'#ffffff')"></div><span class="cp-name">흰색</span></div>
+            <div class="color-item"><div class="cp" style="background:#d4af37" onclick="setTextColor(this,'#d4af37')"></div><span class="cp-name">골드</span></div>
+            <div class="color-item"><div class="cp" style="background:#f97316" onclick="setTextColor(this,'#f97316')"></div><span class="cp-name">주황</span></div>
+            <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setTextColor(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
+            <div class="color-item"><div class="cp" style="background:#3b82f6" onclick="setTextColor(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
+            <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setTextColor(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
+          </div>
         </div>
 
-        <div class="fl">프레임 색상</div>
-        <div class="color-row" id="framePicker">
-          <div class="color-item"><div class="cp sel" style="background:#d0d0d0;box-shadow:inset 0 0 0 1px #aaa" onclick="setFrameColor(this,'#d0d0d0','#aaa','#333')"></div><span class="cp-name">실버</span></div>
-          <div class="color-item"><div class="cp" style="background:#2a2a2a" onclick="setFrameColor(this,'#2a2a2a','#555','#ccc')"></div><span class="cp-name">블랙</span></div>
-          <div class="color-item"><div class="cp" style="background:#1e3a5f" onclick="setFrameColor(this,'#1e3a5f','#2a5f9e','#b0c8e8')"></div><span class="cp-name">네이비</span></div>
-          <div class="color-item"><div class="cp" style="background:#8B6914" onclick="setFrameColor(this,'#8B6914','#b8860b','#f0d87a')"></div><span class="cp-name">브론즈</span></div>
-          <div class="color-item"><div class="cp" style="background:#1a3320" onclick="setFrameColor(this,'#1a3320','#2d5c38','#8ecfa0')"></div><span class="cp-name">다크그린</span></div>
+        <div id="glowColorSection" style="display:none;margin-top:12px">
+          <div class="fl">조명색</div>
+          <div class="color-row" id="glowPicker">
+            <div class="color-item"><div class="cp sel" style="background:#fdf4c8;box-shadow:inset 0 0 0 1px #e8d870" onclick="setGlowColor(this,'#fdf4c8')"></div><span class="cp-name">전구색</span></div>
+            <div class="color-item"><div class="cp" style="background:#ffffff;box-shadow:inset 0 0 0 1px #ccc" onclick="setGlowColor(this,'#ffffff')"></div><span class="cp-name">흰색</span></div>
+            <div class="color-item"><div class="cp" style="background:#d4af37" onclick="setGlowColor(this,'#d4af37')"></div><span class="cp-name">골드</span></div>
+            <div class="color-item"><div class="cp" style="background:#f97316" onclick="setGlowColor(this,'#f97316')"></div><span class="cp-name">주황</span></div>
+            <div class="color-item"><div class="cp" style="background:#ef4444" onclick="setGlowColor(this,'#ef4444')"></div><span class="cp-name">빨강</span></div>
+            <div class="color-item"><div class="cp" style="background:#3b82f6" onclick="setGlowColor(this,'#3b82f6')"></div><span class="cp-name">파랑</span></div>
+            <div class="color-item"><div class="cp" style="background:#22c55e" onclick="setGlowColor(this,'#22c55e')"></div><span class="cp-name">초록</span></div>
+            <div class="color-item"><div class="cp" style="background:#e879f9" onclick="setGlowColor(this,'#e879f9')"></div><span class="cp-name">보라</span></div>
+          </div>
+        </div>
+
+        <div id="frameColorSection" style="display:none;margin-top:12px">
+          <div class="fl">프레임 색상</div>
+          <div class="color-row" id="framePicker">
+            <div class="color-item"><div class="cp sel" style="background:#d0d0d0;box-shadow:inset 0 0 0 1px #aaa" onclick="setFrameColor(this,'#d0d0d0','#aaa','#333')"></div><span class="cp-name">실버</span></div>
+            <div class="color-item"><div class="cp" style="background:#2a2a2a" onclick="setFrameColor(this,'#2a2a2a','#555','#ccc')"></div><span class="cp-name">블랙</span></div>
+            <div class="color-item"><div class="cp" style="background:#1e3a5f" onclick="setFrameColor(this,'#1e3a5f','#2a5f9e','#b0c8e8')"></div><span class="cp-name">네이비</span></div>
+            <div class="color-item"><div class="cp" style="background:#8B6914" onclick="setFrameColor(this,'#8B6914','#b8860b','#f0d87a')"></div><span class="cp-name">브론즈</span></div>
+            <div class="color-item"><div class="cp" style="background:#1a3320" onclick="setFrameColor(this,'#1a3320','#2d5c38','#8ecfa0')"></div><span class="cp-name">다크그린</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -879,6 +900,13 @@ function setTextColor2(el, c) {
   el.classList.add('sel');
   state.textColor2 = c;
   renderP2();
+}
+function toggleColorSection(which) {
+  var map = { textColor: ['showTextColor','textColorSection'], glowColor: ['showGlowColor','glowColorSection'], frameColor: ['showFrameColor','frameColorSection'] };
+  var ids = map[which];
+  if (!ids) return;
+  var checked = document.getElementById(ids[0]).checked;
+  document.getElementById(ids[1]).style.display = checked ? 'block' : 'none';
 }
 function toggleSplitColor() {
   state.splitColorOn = document.getElementById('splitColorToggle').checked;
