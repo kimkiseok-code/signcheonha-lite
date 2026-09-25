@@ -605,6 +605,13 @@ var state = {
 
 // ===== 스텝 이동 =====
 function goNext() {
+  if (state.step === 1) {
+    if (!checkTrial()) {
+      showBuyModal();
+      return;
+    }
+    incrementTrial();
+  }
   if (state.step < 4) {
     state.step++;
     updateStep();
@@ -640,18 +647,7 @@ function updateStep() {
 
   if (state.step === 2) { renderP2(); updateBrightnessRow(); }
   if (state.step === 4) {
-    var cnt = incrementTrial();
     renderQuote();
-    if (cnt > TRIAL_MAX) {
-      setTimeout(showBuyModal, 300);
-    } else {
-      var remain = TRIAL_MAX - cnt;
-      if (remain === 0) {
-        setTimeout(function(){
-          showBuyModal();
-        }, 300);
-      }
-    }
   }
 
   document.querySelector('.content').scrollTop = 0;
