@@ -262,7 +262,12 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
         <div class="fl">부제목 <span class="fl-note">(전화번호·슬로건 등, 조명 미적용)</span></div>
         <input class="fi" id="bizSub" value="000-0000" placeholder="예) 031-000-0000" oninput="syncPreview1()">
         <div class="fl" style="margin-top:16px">폰트 선택</div>
-        <div id="fontSelectedBtn" class="font-btn on" style="font-family:'Gothic A1',sans-serif;margin-bottom:10px">고딕A1</div>
+        <div class="font-grid" id="fontQuickPicks" style="grid-template-columns:repeat(2,1fr);margin-bottom:10px">
+          <div class="font-btn" style="font-family:'Noto Sans KR',sans-serif" onclick="setFont(this,'Noto Sans KR')">노토산스</div>
+          <div class="font-btn" style="font-family:'Nanum Gothic',sans-serif" onclick="setFont(this,'Nanum Gothic')">나눔고딕</div>
+          <div class="font-btn" style="font-family:'Hahmlet',sans-serif" onclick="setFont(this,'Hahmlet')">함렛</div>
+          <div class="font-btn" style="font-family:'Jeju Gothic',sans-serif" onclick="setFont(this,'Jeju Gothic')">제주고딕</div>
+        </div>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2);margin-bottom:10px">
           <input type="checkbox" id="showAllFonts" onchange="toggleFontGrid()" style="width:16px;height:16px;accent-color:var(--blue-mid)">
           폰트 더보기 (전체 목록에서 선택)
@@ -668,14 +673,10 @@ function updateStep() {
 
 // ===== 폰트 선택 =====
 function setFont(el, font) {
-  document.querySelectorAll('#fontPicker .font-btn').forEach(function(b){ b.classList.remove('on'); });
-  el.classList.add('on');
+  document.querySelectorAll('#fontQuickPicks .font-btn, #fontPicker .font-btn').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('onclick') && b.getAttribute('onclick').indexOf("'" + font + "'") > -1);
+  });
   state.fontFamily = font;
-  var disp = document.getElementById('fontSelectedBtn');
-  if (disp) {
-    disp.textContent = el.textContent;
-    disp.style.fontFamily = "'" + font + "', sans-serif";
-  }
   syncCommon();
 }
 function toggleFontGrid() {
