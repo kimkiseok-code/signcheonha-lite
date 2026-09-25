@@ -510,44 +510,6 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
         </div>
         </div>
 
-        <!-- 채널 재질 -->
-        <div class="fl" style="margin-top:18px">채널 재질</div>
-        <div class="material-grid" id="materialSeg">
-          <div class="mat-btn on" onclick="setMaterial(this,'아크릴 채널')">
-            아크릴 채널<span class="mat-sub">일반형 · 저렴</span>
-          </div>
-          <div class="mat-btn" onclick="setMaterial(this,'알루미늄 채널')">
-            알루미늄 채널<span class="mat-sub">내구성 · 보통</span>
-          </div>
-          <div class="mat-btn" onclick="setMaterial(this,'스테인리스')">
-            스테인리스<span class="mat-sub">고급형 · 고가</span>
-          </div>
-          <div class="mat-btn" onclick="setMaterial(this,'동판')">
-            동판<span class="mat-sub">프리미엄</span>
-          </div>
-        </div>
-
-        <!-- 설치 방식 -->
-        <div class="fl" style="margin-top:18px">설치 방식</div>
-        <div class="install-grid" id="installSeg">
-          <div class="install-btn on" onclick="setInstall(this,'벽면 직접')">
-            <span class="inst-icon">🏗</span>
-            <span class="inst-label">벽면 직접</span>
-          </div>
-          <div class="install-btn" onclick="setInstall(this,'돌출 설치')">
-            <span class="inst-icon">📐</span>
-            <span class="inst-label">돌출 설치</span>
-          </div>
-          <div class="install-btn" onclick="setInstall(this,'천장 현수')">
-            <span class="inst-icon">⬆️</span>
-            <span class="inst-label">천장 현수</span>
-          </div>
-          <div class="install-btn" onclick="setInstall(this,'독립 스탠드')">
-            <span class="inst-icon">🚩</span>
-            <span class="inst-label">독립 스탠드</span>
-          </div>
-        </div>
-
         <!-- 수량 -->
         <div class="fl" style="margin-top:18px">수량</div>
         <div class="qty-wrap">
@@ -567,7 +529,7 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
           <div class="quote-row"><span class="label">업체명</span><span class="value" id="q-name">형제삼겹살</span></div>
           <div class="quote-row"><span class="label">채널 크기</span><span class="value" id="q-size">3000×400mm</span></div>
           <div class="quote-row"><span class="label">프레임</span><span class="value" id="q-frame">3000×100mm</span></div>
-          <div class="quote-row"><span class="label">재질</span><span class="value" id="q-material">아크릴 채널</span></div>
+          <div class="quote-row"><span class="label">재질</span><span class="value" id="q-material">AL채널</span></div>
           <div class="quote-row"><span class="label">조명</span><span class="value" id="q-light">전광</span></div>
           <div class="quote-row"><span class="label">설치</span><span class="value" id="q-install">벽면 직접</span></div>
           <div class="quote-row"><span class="label">수량</span><span class="value" id="q-qty">1개</span></div>
@@ -622,7 +584,7 @@ var state = {
   sizeH: 300,
   frameH: 200,
   frameW: 3500,
-  material: '아크릴 채널',
+  material: 'AL채널',
   install: '벽면 직접',
   qty: 1,
   issuerName: '',
@@ -1086,7 +1048,7 @@ function calcPrice() {
   state.sizeW = w; state.sizeH = h; state.frameH = fh; state.frameW = fw;
 
   var area = (w / 1000) * (h / 1000); // m²
-  var matBase = { '아크릴 채널': 280000, '알루미늄 채널': 380000, '스테인리스': 520000, '동판': 680000 };
+  var matBase = { 'AL채널': 280000 };
   var instBase = { '벽면 직접': 80000, '돌출 설치': 150000, '천장 현수': 200000, '독립 스탠드': 250000 };
   var prod = Math.round(area * (matBase[state.material] || 280000));
   var elec = Math.round(area * 60000 + (state.lightMode === '전+후광' ? area * 40000 : 0));
