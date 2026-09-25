@@ -1,5 +1,5 @@
 // SignCheonha Lite Service Worker
-var CACHE = 'scl-v28';
+var CACHE = 'scl-v31';
 var ASSETS = [
   '/',
   '/index.html',
