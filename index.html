@@ -1073,13 +1073,6 @@ function calcPrice() {
   return { prod: prod, elec: elec, inst: inst, total: total };
 }
 function fmt(n) { return n.toLocaleString('ko-KR') + '원'; }
-function recalcTotal() {
-  var total = 0;
-  quoteItems.forEach(function(item){ total += (item.amount || 0); });
-  total *= state.qty;
-  var el = document.getElementById('q-total');
-  if (el) el.textContent = fmt(total);
-}
 function renderQuote() {
   state.bizName = document.getElementById('bizName').value || '업체명';
   state.bizSub  = document.getElementById('bizSub').value || '';
@@ -1103,7 +1096,7 @@ function renderQuote() {
 
 function printQuote() {
   var total = 0;
-  quoteItems.forEach(function(item){ total += (item.amount||0); });
+  quoteItems.forEach(function(item){ total += (item.qty||1) * (item.amount||0); });
   total *= state.qty;
   var now = new Date();
   var dateStr = now.getFullYear() + '.' + (now.getMonth()+1) + '.' + now.getDate();
