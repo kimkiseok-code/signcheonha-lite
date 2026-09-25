@@ -262,7 +262,12 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
         <div class="fl">부제목 <span class="fl-note">(전화번호·슬로건 등, 조명 미적용)</span></div>
         <input class="fi" id="bizSub" value="000-0000" placeholder="예) 031-000-0000" oninput="syncPreview1()">
         <div class="fl" style="margin-top:16px">폰트 선택</div>
-        <div class="font-grid" id="fontPicker" style="grid-template-columns:repeat(3,1fr)">
+        <div id="fontSelectedBtn" class="font-btn on" style="font-family:'Gothic A1',sans-serif;margin-bottom:10px">고딕A1</div>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2);margin-bottom:10px">
+          <input type="checkbox" id="showAllFonts" onchange="toggleFontGrid()" style="width:16px;height:16px;accent-color:var(--blue-mid)">
+          폰트 더보기 (전체 목록에서 선택)
+        </label>
+        <div class="font-grid" id="fontPicker" style="grid-template-columns:repeat(3,1fr);display:none">
           <div class="font-btn on" style="font-family:'Gothic A1',sans-serif" onclick="setFont(this,'Gothic A1')">고딕A1</div>
           <div class="font-btn" style="font-family:'Black Han Sans',sans-serif" onclick="setFont(this,'Black Han Sans')">블랙한산</div>
           <div class="font-btn" style="font-family:'Noto Sans KR',sans-serif" onclick="setFont(this,'Noto Sans KR')">노토산스</div>
@@ -649,7 +654,8 @@ function updateStep() {
   var badge = document.getElementById('trialBadge');
   if (badge) {
     if (isAdminUnlocked()) {
-      badge.textContent = '관리자 모드';
+      var usedKey = localStorage.getItem(LICENSE_KEY_STORE);
+      badge.textContent = (usedKey && usedKey !== ADMIN_CODE) ? '정품 사용중' : '관리자 모드';
       badge.style.color = '#4a9aee';
     } else {
       var used = getTrialCount();
@@ -665,7 +671,16 @@ function setFont(el, font) {
   document.querySelectorAll('#fontPicker .font-btn').forEach(function(b){ b.classList.remove('on'); });
   el.classList.add('on');
   state.fontFamily = font;
+  var disp = document.getElementById('fontSelectedBtn');
+  if (disp) {
+    disp.textContent = el.textContent;
+    disp.style.fontFamily = "'" + font + "', sans-serif";
+  }
   syncCommon();
+}
+function toggleFontGrid() {
+  var checked = document.getElementById('showAllFonts').checked;
+  document.getElementById('fontPicker').style.display = checked ? 'grid' : 'none';
 }
 
 // ===== 위치 조절 =====
@@ -1359,14 +1374,35 @@ function doCapture(el) {
 
 // ===== 무료 체험 관리 =====
 var TRIAL_KEY = 'scl_trial_count';
-var TRIAL_MAX = 5;
+var TRIAL_MAX = 3;
 var ADMIN_KEY  = 'scl_admin_unlock';
-var ADMIN_CODE = '1961';
+var ADMIN_CODE = '1961'; // 김기석님 전용 관리자 키 (그대로 유지)
+var LICENSE_KEY_STORE = 'scl_license_key'; // 실제로 사용된 구매자 키를 저장 (유출 추적용)
+
+// 구매자별 라이선스 키: "CH-0001-XX" 형식 (번호 4자리 + 체크섬 2자리)
+// 목록을 저장해두는 게 아니라 공식으로 검증하므로, 팔 때마다 새로 배포할 필요 없음.
+// 번호(0001, 0002...)만 순서대로 발급하면 됨 — 체크섬 공식: (번호*31 + 7919) % 1296 → 36진수 2자리
+function licenseChecksum(numStr) {
+  var n = parseInt(numStr, 10);
+  if (isNaN(n)) return null;
+  var v = (n * 31 + 7919) % 1296;
+  var s = v.toString(36).toUpperCase();
+  return s.length < 2 ? ('0' + s) : s;
+}
+function isValidLicenseKey(key) {
+  if (!key) return false;
+  var m = /^CH-(\d{4})-([A-Z0-9]{2})$/.exec(key.trim().toUpperCase());
+  if (!m) return false;
+  return licenseChecksum(m[1]) === m[2];
+}
 
 (function checkAdminKey() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('key') === ADMIN_CODE) {
+  var k = params.get('key');
+  if (!k) return;
+  if (k === ADMIN_CODE || isValidLicenseKey(k)) {
     localStorage.setItem(ADMIN_KEY, '1');
+    localStorage.setItem(LICENSE_KEY_STORE, k.trim().toUpperCase());
   }
 })();
 function isAdminUnlocked() {
@@ -1417,7 +1453,7 @@ syncCommon();
     <div style="font-size:36px;margin-bottom:12px">🎉</div>
     <div style="font-size:18px;font-weight:700;color:#e8e8e8;margin-bottom:8px">무료 체험이 끝났어요</div>
     <div style="font-size:13px;color:#a0a0a0;margin-bottom:20px;line-height:1.6">
-      5회 무료 사용이 완료되었습니다.<br>
+      3회 무료 사용이 완료되었습니다.<br>
       계속 사용하시려면 프로그램을 구매해주세요.
     </div>
     <div style="background:#111;border:1px solid #2878cc;border-radius:12px;padding:16px;margin-bottom:20px">
