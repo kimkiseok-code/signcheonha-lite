@@ -1271,17 +1271,44 @@ function renderBgSvg(key) {
 // ============================================================
 var quoteItems = [];
 
+// LED모듈 개수 실측 기준표 (채널문자 크기(mm) → 글자당 모듈수) — "간판전용_견적서_1.html"과 동일
+var LED_MODULE_COUNT_TABLE = [
+  [300, 15],
+  [350, 18],
+  [400, 21],
+  [500, 31],
+  [550, 35],
+  [600, 41],
+  [800, 67],
+  [1000, 99],
+  [1200, 139],
+  [1500, 201],
+  [2000, 323]
+];
+function interpolateModuleTable(table, x) {
+  if (x <= table[0][0]) return table[0][1];
+  for (var i = 0; i < table.length - 1; i++) {
+    var a = table[i], b = table[i + 1];
+    if (x >= a[0] && x <= b[0]) {
+      var ratio = (x - a[0]) / (b[0] - a[0]);
+      return Math.round(a[1] + ratio * (b[1] - a[1]));
+    }
+  }
+  var last = table[table.length - 1], prev = table[table.length - 2];
+  var slope = (last[1] - prev[1]) / (last[0] - prev[0]);
+  return Math.round(last[1] + slope * (x - last[0]));
+}
+function ledModuleCountFromSize(sizeMm) {
+  return interpolateModuleTable(LED_MODULE_COUNT_TABLE, sizeMm);
+}
 function initQuoteItems(prod, elec, inst) {
   // 글자 수 기반 채널 수량 계산
   var nameLen = (state.bizName || '').replace(/\|/g, '').length || 1;
 
-  // LED모듈(BAR3구) 개수 계산 — ledtrans.exe 실측표 기반
-  // 보통서체: 글자당 모듈수 ≈ S(cm)² × 0.0067,  굵은서체: ≈ S(cm)² × 0.01
-  // → 두 서체 평균 ≈ S² × 0.00835 (100cm 기준 보통67/굵은100 평균 83.5와 정확히 일치)
-  // S(글자 한 변, cm) = 채널 세로(mm)/10 로 근사 (정사각형 글자 기준)
-  var S_cm = (state.sizeH || 300) / 10;
-  var avgModulesPerChar = S_cm * S_cm * 0.00835;
-  var totalModules = Math.max(1, Math.round(avgModulesPerChar * nameLen));
+  // LED모듈 개수 — "간판전용_견적서_1.html"에서 쓰던 실측 기준표(가로/세로 mm별 글자당 모듈수)를
+  // 그대로 가져와서 보간(직선보간) 계산. 표의 최대값(2000mm)을 넘으면 마지막 구간 기울기로 연장.
+  var perLetterModules = ledModuleCountFromSize(state.sizeH || 300);
+  var totalModules = Math.max(1, Math.round(perLetterModules * nameLen));
 
   // SMPS는 300W로 고정 (단가 100,000원 고정) — 용량의 80%(=240개)까지 모듈 수용, 넘으면 대수 증가
   var smpsWatt = 300;
@@ -1290,7 +1317,7 @@ function initQuoteItems(prod, elec, inst) {
 
   quoteItems = [
     { label:'채널 제작', qty: nameLen, amount: 100000 },
-    { label:'LED모듈(BAR3구·평균)', qty: totalModules, amount: 0 },
+    { label:'LED모듈(BAR3구·평균)', qty: totalModules, amount: 1000 },
     { label:'SMPS ' + smpsWatt + 'W', qty: smpsQty, amount: 100000 },
     { label:'조명·배선 인건비', qty: 1, amount: 150000 },
     { label:'설치 시공', qty: 1, amount: 150000 },
