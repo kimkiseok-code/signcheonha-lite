@@ -232,7 +232,13 @@ html, body { height: 100%; background: var(--bg); font-family: -apple-system, 'A
       </div>
     </div>
     <!-- 배경 선택 -->
-    <div style="padding:8px 12px 10px;background:#000">
+    <div style="padding:6px 12px 4px;background:#000">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2)">
+        <input type="checkbox" id="showBgPicker" onchange="toggleBgPicker()" style="width:16px;height:16px;accent-color:var(--blue-mid)">
+        배경 재질 미리보기 (설치될 벽면 느낌 확인용)
+      </label>
+    </div>
+    <div id="bgPickerSection" style="display:none;padding:4px 12px 10px;background:#000">
       <div class="bg-preset-row">
         <div class="bg-preset-btn on" onclick="setBg(this,'none')">🌑 없음</div>
         <div class="bg-preset-btn" onclick="setBg(this,'marble')">🪨 대리석</div>
@@ -1184,6 +1190,10 @@ var BG_PRESETS = {
   }
 };
 
+function toggleBgPicker() {
+  var checked = document.getElementById('showBgPicker').checked;
+  document.getElementById('bgPickerSection').style.display = checked ? 'block' : 'none';
+}
 function setBg(el, key) {
   document.querySelectorAll('.bg-preset-btn').forEach(function(b){ b.classList.remove('on'); });
   el.classList.add('on');
